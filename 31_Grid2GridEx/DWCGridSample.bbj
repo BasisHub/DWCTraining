@@ -1,0 +1,76 @@
+use ::BBjGridExWidget/BBjGridExWidget.bbj::BBjGridExWidget
+use ::BBjGridExWidget/GxClientModels.bbj::GxClientRowModel
+use com.basiscomponents.db.ResultSet
+use com.basiscomponents.db.DataRow
+
+wnd! = BBjAPI().openSysGui("X0").addWindow(10,10,800,600,"Hello BBj DWC")
+wnd!.setCallback(BBjAPI.ON_CLOSE,"byebye")
+wnd!.setCallback(BBjAPI.ON_RESIZE,"resize")
+
+grid! = new BBjGridExWidget(wnd!,100,10,10,780,500)
+grid!.setCallback(BBjAPI.ON_GRID_SELECT_ROW,"on_grid_select")
+
+selection! = wnd!.addStaticText(101,10,530,400,30,"")
+
+gosub setup_grid
+
+process_events
+
+setup_grid:
+  rem get template and file path for CDStore
+  sqlopen (1)"CDStore"
+  sqlprep (1)"GET TABLE INFO FOR CDINVENTORY"
+  sqlexec (1)
+  dim inf$:sqltmpl(1)
+  inf$=sqlfetch(1)
+  sqlclose (1)
+
+  ch=unt
+  open (ch)inf.filename$
+  dim rec$:inf.template$
+  rs! = grid!.getRS()
+  while 1
+    read record (ch,end=*break)rec$
+    rs!.add(DataRow.fromTemplate(inf.template$,rec$))
+  wend
+
+  grid!.addColumn("CDNUMBER","CD Number")
+  grid!.addColumn("TITLE","Title")
+  grid!.addColumn("ARTIST","Artist")
+  grid!.addColumn("LABEL","Label")
+  grid!.addColumn("PLAYINGTIME","Playing Time")
+  grid!.addColumn("RECORDINGTYPE","Quality")
+  grid!.addColumn("MUSICTYPE","Musictype")
+  grid!.addColumn("BINLOCATION","Bin")
+  grid!.addColumn("NUMBEROFTRACKS","Tracks")
+  grid!.addColumn("ONHAND","Stock")
+
+  cost! = grid!.addColumn("COST","Cost")
+  cost!.setDefaultNumbersMask("####0.00")
+
+  retail! = grid!.addColumn("RETAIL","Retail")
+  retail!.setDefaultNumbersMask("####0.00")
+
+  grid!.setData(rs!)
+return
+
+on_grid_select:
+  declare auto GxClientRowModel rowModel!
+  declare auto DataRow row!
+
+  rowModel! = grid!.getSelectedRow()
+  row! = rowModel!.asDataRow()
+  info$ = "You selected " + row!.getFieldAsString("CDNUMBER")+ ": '"+ row!.getFieldAsString("TITLE") + "' by " + row!.getFieldAsString("TITLE")
+  selection!.setText(info$)
+return
+
+resize:
+  ev! = BBjAPI().getLastEvent()
+  h = ev!.getHeight()
+  w = ev!.getWidth()
+  grid!.setSize(w-20,h-100)
+  selection!.setLocation(10,h-70)
+return
+
+byebye:
+release
