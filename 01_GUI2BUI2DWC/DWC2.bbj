@@ -1,0 +1,30 @@
+wnd! = BBjAPI().openSysGui("X0").addWindow("Hello BBj DWC", $01101083$)
+
+wnd!.setPanelStyle("display","inline-grid")
+wnd!.setPanelStyle("grid-template-columns","1fr 1fr")
+wnd!.setPanelStyle("gap","5px")
+wnd!.setPanelStyle("padding","15px")
+
+st! = wnd!.addStaticText("Firstname:")
+ed_vorname! = wnd!.addEditBox("")
+st! = wnd!.addStaticText("Name:")
+ed_name! = wnd!.addEditBox("")
+btn! = wnd!.addButton("Say Hello")
+
+btn!.setStyle("grid-column","2")
+
+btn!.setAttribute("expanse","xl")
+btn!.setAttribute("theme","success")
+
+wnd!.setCallback(BBjAPI.ON_CLOSE,"byebye")
+btn!.setCallback(BBjAPI.ON_BUTTON_PUSH,"sayhello")
+
+process_events
+
+byebye: bye
+
+sayhello:
+    firstname$=ed_vorname!.getText()
+    name$=ed_name!.getText()
+    a=msgbox("Hallo "+firstname$+" "+name$,64,"Hello World")
+return

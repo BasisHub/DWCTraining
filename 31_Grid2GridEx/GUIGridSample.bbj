@@ -1,0 +1,87 @@
+
+wnd! = BBjAPI().openSysGui("X0").addWindow(10,10,800,600,"Hello BBj DWC")
+
+grid! = wnd!.addGrid(100,10,10,780,500)
+
+selection! = wnd!.addStaticText(101,10,530,400,30,"")
+
+gosub setup_grid
+
+wnd!.setCallback(BBjAPI.ON_CLOSE,"byebye")
+wnd!.setCallback(BBjAPI.ON_RESIZE,"resize")
+grid!.setCallback(BBjAPI.ON_GRID_SELECT_ROW,"on_grid_select")
+
+process_events
+
+setup_grid:
+    rem get template and file path for CDStore
+    sqlopen (1)"CDStore"
+    sqlprep (1)"GET TABLE INFO FOR CDINVENTORY"
+    sqlexec (1)
+    dim inf$:sqltmpl(1)
+    inf$=sqlfetch(1)
+    sqlclose (1)
+
+    ch=unt
+    open (ch)inf.filename$
+    dim rec$:inf.template$
+    grid_vec! = new BBjVector()
+    while 1
+        read record (ch,end=*break)rec$
+        grid_vec!.addItem(rec.cdnumber$)
+        grid_vec!.addItem(rec.title$)
+        grid_vec!.addItem(rec.artist$)
+        grid_vec!.addItem(rec.label$)
+        grid_vec!.addItem(rec.playingtime$)
+        grid_vec!.addItem(rec.recordingtype$)
+        grid_vec!.addItem(rec.musictype$)
+        grid_vec!.addItem(rec.binlocation$)
+        grid_vec!.addItem(rec.numberoftracks$)
+        grid_vec!.addItem(rec.onhand$)
+        grid_vec!.addItem(str(rec.cost:"####0.00"))
+        grid_vec!.addItem(str(rec.retail:"####0.00"))
+        rowcount=rowcount+1
+    wend
+
+    grid!.setNumColumns(12)
+    grid!.setNumRows(rowcount)
+    grid!.setCellText(0,0,grid_vec!)
+    head_vec! = new BBjVector()
+    head_vec!.addItem("CD Number")
+    head_vec!.addItem("Title")
+    head_vec!.addItem("Artist")
+    head_vec!.addItem("Label")
+    head_vec!.addItem("Playing Time")
+    head_vec!.addItem("Quality")
+    head_vec!.addItem("Musictype")
+    head_vec!.addItem("Bin")
+    head_vec!.addItem("Tracks")
+    head_vec!.addItem("Stock")
+    head_vec!.addItem("Cost")
+    head_vec!.addItem("Retail")
+    grid!.setHasColumnHeader(1)
+    grid!.setColumnHeaderText(head_vec!)
+    grid!.setVerticalScrollable(1)
+    grid!.setHorizontalScrollable(1)
+    grid!.setSelectionMode(grid!.GRID_SELECT_ROW)
+    grid!.deselectAllCells()
+return
+
+on_grid_select:
+    ev! = BBjAPI().getLastEvent()
+    row = ev!.getRow()
+    info$ = "You selected "+grid!.getCellText(row,0)+": '"+grid!.getCellText(row,1)+"' by "+grid!.getCellText(row,2)
+    selection!.setText(info$)
+return
+
+resize:
+    ev! = BBjAPI().getLastEvent()
+    h = ev!.getHeight()
+    w = ev!.getWidth()
+    grid!.setSize(w-20,h-100)
+    selection!.setLocation(10,h-70)
+return
+
+
+byebye:
+    release

@@ -1,0 +1,32 @@
+::BBUtils.bbj::BBUtils.applyCss("Sample", BBjAPI().getFileSystem().resolvePath("sample.css"), 1)
+
+wnd! = BBjAPI().openSysGui("X0").addWindow(10,10,800,600,"Hello BBj DWC",$01101083$)
+
+wnd!.addPanelStyle("mypanel")
+
+st! = wnd!.addStaticText(wnd!.getAvailableControlID(),10,10,200,20,"Firstname:")
+ed_vorname! = wnd!.addEditBox(wnd!.getAvailableControlID(),210,10,200,20,"")
+st! = wnd!.addStaticText(wnd!.getAvailableControlID(),10,40,200,20,"Name:")
+ed_name! = wnd!.addEditBox(wnd!.getAvailableControlID(),210,40,200,20,"")
+btn! = wnd!.addButton(wnd!.getAvailableControlID(),10,70,400,30,"Say Hello")
+
+
+btn!.setStyle("grid-column","2")
+
+btn!.setAttribute("expanse","xl")
+btn!.setAttribute("theme","success")
+
+btn!.addStyle("myButtonClass")
+
+
+wnd!.setCallback(BBjAPI.ON_CLOSE,"byebye")
+btn!.setCallback(BBjAPI.ON_BUTTON_PUSH,"sayhello")
+process_events
+
+byebye: bye
+
+sayhello:
+    firstname$=ed_vorname!.getText()
+    name$=ed_name!.getText()
+    a=msgbox("Hallo "+firstname$+" "+name$,64,"Hello World")
+return
