@@ -1,9 +1,9 @@
-wnd! = BBjAPI().openSysGui("X0").addWindow(10,10,500,180,"Hello BBj DWC")
+wnd! = BBjAPI().openSysGui("X0").addWindow(10,10,450,140,"Hello BBj DWC")
 
-st! = wnd!.addStaticText(wnd!.getAvailableControlID(),10,10,200,20,"Firstname:")
-ed_vorname! = wnd!.addEditBox(wnd!.getAvailableControlID(),210,10,200,20,"")
-st! = wnd!.addStaticText(wnd!.getAvailableControlID(),10,40,200,20,"Lastname:")
-ed_name! = wnd!.addEditBox(wnd!.getAvailableControlID(),210,40,200,20,"")
+st! = wnd!.addStaticText(wnd!.getAvailableControlID(),10,10,200,20,"First Name:")
+ed_firstname! = wnd!.addEditBox(wnd!.getAvailableControlID(),210,10,200,20,"")
+st! = wnd!.addStaticText(wnd!.getAvailableControlID(),10,40,200,20,"Last Name:")
+ed_lastname! = wnd!.addEditBox(wnd!.getAvailableControlID(),210,40,200,20,"")
 btn! = wnd!.addButton(wnd!.getAvailableControlID(),10,70,400,30,"Say Hello")
 
 wnd!.setCallback(BBjAPI.ON_CLOSE,"byebye")
@@ -14,7 +14,7 @@ process_events
 byebye: bye
 
 sayhello:
-    firstname$=ed_vorname!.getText()
-    name$=ed_name!.getText()
-    a=msgbox("Hello "+firstname$+" "+name$,64,"Hello World")
+    firstname$=ed_firstname!.getText()
+    lastname$=ed_lastname!.getText()
+    a=msgbox("Hello "+firstname$+" "+lastname$,64,"Hello World")
 return

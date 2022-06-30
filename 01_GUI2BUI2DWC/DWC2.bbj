@@ -5,10 +5,10 @@ wnd!.setPanelStyle("grid-template-columns","1fr 1fr")
 wnd!.setPanelStyle("gap","5px")
 wnd!.setPanelStyle("padding","15px")
 
-st! = wnd!.addStaticText("Firstname:")
-ed_vorname! = wnd!.addEditBox("")
-st! = wnd!.addStaticText("Name:")
-ed_name! = wnd!.addEditBox("")
+st! = wnd!.addStaticText("First Name:")
+ed_firstname! = wnd!.addEditBox("")
+st! = wnd!.addStaticText("Last Name:")
+ed_lname! = wnd!.addEditBox("")
 btn! = wnd!.addButton("Say Hello")
 
 btn!.setStyle("grid-column","2")
@@ -24,7 +24,7 @@ process_events
 byebye: bye
 
 sayhello:
-    firstname$=ed_vorname!.getText()
-    name$=ed_name!.getText()
-    a=msgbox("Hallo "+firstname$+" "+name$,64,"Hello World")
+    firstname$=ed_firstname!.getText()
+    lastname$=ed_lastname!.getText()
+    a=msgbox("Hello "+firstname$+" "+lastname$,64,"Hello World")
 return
