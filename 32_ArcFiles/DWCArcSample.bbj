@@ -1,0 +1,32 @@
+sysgui! =  BBjAPI().openSysGui("X0")
+res = sysgui!.resOpen("ArcSample.arc")
+wnd! = sysgui!.createTopLevelWindow(res,101)
+
+REM the window in the arc file has "GRAVITY" set
+REM for now you have to manually edit the .arc file 
+
+wnd!.setPanelStyle("display","inline-grid")
+wnd!.setPanelStyle("grid-template-columns","1fr 1fr")
+wnd!.setPanelStyle("gap","5px")
+wnd!.setPanelStyle("padding","15px")
+
+btn! = wnd!.getControl("BTN_OK")
+
+btn!.setStyle("grid-column","2")
+btn!.setStyle("grid-row","4")
+
+btn!.setAttribute("expanse","xl")
+btn!.setAttribute("theme","success")
+
+wnd!.setCallback(BBjAPI.ON_CLOSE,"byebye")
+btn!.setCallback(BBjAPI.ON_BUTTON_PUSH,"sayhello")
+
+process_events
+
+byebye: bye
+
+sayhello:
+    firstname$=wnd!.getControl("ED_FIRSTNAME").getText()
+    name$=wnd!.getControl("ED_LASTNAME").getText()
+    a=msgbox("Hello "+firstname$+" "+name$,64,"Hello World")
+return

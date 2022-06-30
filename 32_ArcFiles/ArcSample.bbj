@@ -1,0 +1,16 @@
+sysgui! =  BBjAPI().openSysGui("X0")
+res = sysgui!.resOpen("ArcSample.arc")
+wnd! = sysgui!.createTopLevelWindow(res,101)
+
+wnd!.setCallback(BBjAPI.ON_CLOSE,"byebye")
+wnd!.getControl("BTN_OK").setCallback(BBjAPI.ON_BUTTON_PUSH,"sayhello")
+
+process_events
+
+byebye: bye
+
+sayhello:
+    firstname$=wnd!.getControl("ED_FIRSTNAME").getText()
+    name$=wnd!.getControl("ED_LASTNAME").getText()
+    a=msgbox("Hello "+firstname$+" "+name$,64,"Hello World")
+return
