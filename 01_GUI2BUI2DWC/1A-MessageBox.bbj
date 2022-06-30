@@ -1,0 +1,13 @@
+rem /**
+rem  * 1A-MessageBox.bbj
+rem  * Exercise 1: Run in all three BBj clients: GUI, BUI, and the DWC.
+rem  * Exercise 2:
+rem  *
+rem  *
+rem  */
+
+if (info(3,6)="1") then client$ = "GUI"
+if (info(3,6)="5") then client$ = "BUI"
+if (info(3,6)="6") then client$ = "DWC"
+temp = msgbox("Hello from BBj's " + client$ + " client!", BBjSysGui.MSGBOX_ICON_INFORMATION, "Greetings", MODE="theme=primary")
+release
