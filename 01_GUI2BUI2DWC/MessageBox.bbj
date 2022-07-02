@@ -1,9 +1,8 @@
 rem /**
-rem  * 1A-MessageBox.bbj
-rem  * Exercise 1: Run in all three BBj clients: GUI, BUI, and the DWC.
-rem  * Exercise 2:
-rem  *
-rem  *
+rem  * MessageBox.bbj
+rem  * Exercise 1: Run the program in all three clients: GUI, BUI, and the DWC
+rem  * Exercise 2: Change the msgbox code to set the message box and its button
+rem  * to the DWC's "danger" component theme.
 rem  */
 
 if (info(3,6)="1") then client$ = "GUI"
