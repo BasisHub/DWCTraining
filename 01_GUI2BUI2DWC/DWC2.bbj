@@ -1,3 +1,12 @@
+rem /**
+rem  * DWC2.bbj
+rem  * This program is the result of starting with the DWC1.bbj program and
+rem  * making more DWC-specific changes to it, including:
+rem  *   - Adding the window without specifying the x, y, w, and h parameters
+rem  *   - Removing the window's title bar and setting it to be initially maximized
+rem  *   - Adding the controls to the window without specifying the ID, x, y, w, and h parameters
+rem  */
+
 wnd! = BBjAPI().openSysGui("X0").addWindow("Hello BBj DWC", $01101083$)
 
 wnd!.setPanelStyle("display","inline-grid")
@@ -8,7 +17,7 @@ wnd!.setPanelStyle("padding","15px")
 st! = wnd!.addStaticText("First Name:")
 ed_firstname! = wnd!.addEditBox("")
 st! = wnd!.addStaticText("Last Name:")
-ed_lname! = wnd!.addEditBox("")
+ed_lastname! = wnd!.addEditBox("")
 btn! = wnd!.addButton("Say Hello")
 
 btn!.setStyle("grid-column","2")

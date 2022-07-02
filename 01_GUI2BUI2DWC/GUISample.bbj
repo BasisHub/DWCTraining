@@ -1,3 +1,9 @@
+rem /**
+rem  * GUISample.bbj
+rem  * This sample GUI program is the starting point for the exercises in Chapter 1: GUI to BUI to DWC.
+rem  * It's a simple "Hello World" GUI app that runs in GUI, BUI, and DWC.
+rem  */
+
 wnd! = BBjAPI().openSysGui("X0").addWindow(10,10,450,140,"Hello BBj DWC")
 
 st! = wnd!.addStaticText(wnd!.getAvailableControlID(),10,10,200,20,"First Name:")

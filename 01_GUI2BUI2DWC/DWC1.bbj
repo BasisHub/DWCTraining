@@ -1,3 +1,13 @@
+rem /**
+rem  * DWC1.bbj
+rem  * This program is the result of starting with the GUISample.bbj program and
+rem  * making several DWC-specific changes to it, including:
+rem  *   - Setting the window's flag to opt-in to flow layout
+rem  *   - Executing setPanelStyle() methods to use CSS Grid for the window's layout
+rem  *   - Executing setStyle() on the [Say Hello] button to place in it the grid's second column
+rem  *   - Executing setAttribute() on the [Say Hello] button to affect its size and theme
+rem  */
+
 wnd! = BBjAPI().openSysGui("X0").addWindow(10,10,450,140,"Hello BBj DWC", $00100083$)
 
 wnd!.setPanelStyle("display","grid")
