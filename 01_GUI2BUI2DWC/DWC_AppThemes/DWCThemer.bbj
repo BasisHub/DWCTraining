@@ -1,0 +1,47 @@
+rem /**
+rem  * DWCThemer.bbj
+rem  * This program is the result of starting with the DWC2.bbj program and
+rem  * applying a custom theme which was created by the DWCThemer
+rem  * 
+rem  * @app-style-bottom: An attribute directive used to attach a style at the bottom of the page. 
+rem  *                    The directive accepts plain CSS.
+rem  * @see https://basishub.github.io/basis-next/#/dwc/attributes-directives
+rem  */
+
+use java.nio.file.Files
+use java.nio.file.Paths
+
+fs! = BBjAPI().getFileSystem()
+theme! = new String(Files.readAllBytes(Paths.get(fs!.resolvePath("./css/MyDwcTheme.css"))))
+
+wnd! = BBjAPI().openSysGui("X0").addWindow("Hello BBj DWC", $01101083$)
+wnd!.setAttribute("@app-style-bottom", theme!)
+
+wnd!.setPanelStyle("display","inline-grid")
+wnd!.setPanelStyle("grid-template-columns","1fr 1fr")
+wnd!.setPanelStyle("gap","5px")
+wnd!.setPanelStyle("padding","15px")
+
+st! = wnd!.addStaticText("First Name:")
+ed_firstname! = wnd!.addEditBox("")
+st! = wnd!.addStaticText("Last Name:")
+ed_lastname! = wnd!.addEditBox("")
+btn! = wnd!.addButton("Say Hello")
+
+btn!.setStyle("grid-column","2")
+
+btn!.setAttribute("expanse","xl")
+btn!.setAttribute("theme","primary")
+
+wnd!.setCallback(BBjAPI.ON_CLOSE,"byebye")
+btn!.setCallback(BBjAPI.ON_BUTTON_PUSH,"sayhello")
+
+process_events
+
+byebye: bye
+
+sayhello:
+    firstname$=ed_firstname!.getText()
+    lastname$=ed_lastname!.getText()
+    a=msgbox("Hello "+firstname$+" "+lastname$,64,"Hello World")
+return

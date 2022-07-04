@@ -1,0 +1,46 @@
+rem /**
+rem  * Themes.bbj
+rem  * This program is the result of starting with the DWC2.bbj program and
+rem  * enabling the dark theme. DWC supports three main themes: 
+rem  *   - light which is the default light theme and it has a light background
+rem  *   - dark which is the default dark theme and it has a dark background tinted with the primary color (blue)
+rem  *   - dark-pure which has a pure dark background (grayish, not fully black)
+rem  *  
+rem  * @app-theme is an attribute directive that can be used to set the theme. 
+rem  *            The directive accepts the theme name as a value.
+rem  *  
+rem  * @see https://basishub.github.io/basis-next/#/dwc/attributes-directives
+rem  */
+
+wnd! = BBjAPI().openSysGui("X0").addWindow("Hello BBj DWC", $01101083$)
+wnd!.setAttribute("@app-theme","dark")
+rem wnd!.setAttribute("@app-theme","dark-pure")
+
+wnd!.setPanelStyle("display","inline-grid")
+wnd!.setPanelStyle("grid-template-columns","1fr 1fr")
+wnd!.setPanelStyle("gap","5px")
+wnd!.setPanelStyle("padding","15px")
+
+st! = wnd!.addStaticText("First Name:")
+ed_firstname! = wnd!.addEditBox("")
+st! = wnd!.addStaticText("Last Name:")
+ed_lastname! = wnd!.addEditBox("")
+btn! = wnd!.addButton("Say Hello")
+
+btn!.setStyle("grid-column","2")
+
+btn!.setAttribute("expanse","xl")
+btn!.setAttribute("theme","success")
+
+wnd!.setCallback(BBjAPI.ON_CLOSE,"byebye")
+btn!.setCallback(BBjAPI.ON_BUTTON_PUSH,"sayhello")
+
+process_events
+
+byebye: bye
+
+sayhello:
+    firstname$=ed_firstname!.getText()
+    lastname$=ed_lastname!.getText()
+    a=msgbox("Hello "+firstname$+" "+lastname$,64,"Hello World")
+return

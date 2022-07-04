@@ -1,0 +1,56 @@
+rem /**
+rem  * UserPreference.bbj
+rem  * This program is the result of starting with the DWC2.bbj program and
+rem  * activating the the theme switcher directive.
+rem  *  
+rem  * You can also apply the dark theme based on the user preference. The user might indicate this preference through 
+rem  * an operating system. Operating systems that support a dark mode or dark theme typically have an option to activate
+rem  * it somewhere in the settings.
+rem  *
+rem  *  - On Windows 10: it's in the Colors section and called Choose your color.
+rem  *  - On macOS: it's in the system preference's General section and called Appearance.
+rem  *  - On iOS: you can change the Appearance in the Display & Brightness section of the settings.
+rem  *  - On Android: you can find it under Display as a Dark Theme toggle switch.
+rem  *  
+rem  * In BBj , you need to use the @app-theme-switcher directive to activate the automatic switching. 
+rem  * The directive requires the name of the dark theme and the name of the light name.
+rem  *  
+rem  * @app-theme-switcher is an attribute directive that is used to switch the current theme based on the user preference. 
+rem  *                      The user might indicate this preference through an operating system setting (e.g. light or dark mode) 
+rem  *                      or a user agent setting. 
+rem  *
+rem  * @see https://basishub.github.io/basis-next/#/dwc/attributes-directives
+rem  * @see https://basishub.github.io/basis-next/#/dwc/themes?id=user-preference
+rem  */
+
+wnd! = BBjAPI().openSysGui("X0").addWindow("Hello BBj DWC", $01101083$)
+wnd!.setAttribute("@app-theme-switcher","dark=dark-pure light=light")
+
+wnd!.setPanelStyle("display","inline-grid")
+wnd!.setPanelStyle("grid-template-columns","1fr 1fr")
+wnd!.setPanelStyle("gap","5px")
+wnd!.setPanelStyle("padding","15px")
+
+st! = wnd!.addStaticText("First Name:")
+ed_firstname! = wnd!.addEditBox("")
+st! = wnd!.addStaticText("Last Name:")
+ed_lastname! = wnd!.addEditBox("")
+btn! = wnd!.addButton("Say Hello")
+
+btn!.setStyle("grid-column","2")
+
+btn!.setAttribute("expanse","xl")
+btn!.setAttribute("theme","success")
+
+wnd!.setCallback(BBjAPI.ON_CLOSE,"byebye")
+btn!.setCallback(BBjAPI.ON_BUTTON_PUSH,"sayhello")
+
+process_events
+
+byebye: bye
+
+sayhello:
+    firstname$=ed_firstname!.getText()
+    lastname$=ed_lastname!.getText()
+    a=msgbox("Hello "+firstname$+" "+lastname$,64,"Hello World")
+return
