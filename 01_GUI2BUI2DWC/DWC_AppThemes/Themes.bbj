@@ -1,14 +1,14 @@
 rem /**
 rem  * Themes.bbj
 rem  * This program is the result of starting with the DWC2.bbj program and
-rem  * enabling the dark theme. DWC supports three main themes: 
-rem  *   - light which is the default light theme and it has a light background
-rem  *   - dark which is the default dark theme and it has a dark background tinted with the primary color (blue)
-rem  *   - dark-pure which has a pure dark background (grayish, not fully black)
-rem  *  
-rem  * @app-theme is an attribute directive that can be used to set the theme. 
+rem  * enabling the dark theme. DWC supports three main themes:
+rem  *   - light, which is the default light theme and it has a light background
+rem  *   - dark, which is the default dark theme and it has a dark background tinted with the primary color (blue)
+rem  *   - dark-pure, which has a pure dark background (grayish, not fully black)
+rem  *
+rem  * @app-theme is an attribute directive that can be used to set the theme.
 rem  *            The directive accepts the theme name as a value.
-rem  *  
+rem  *
 rem  * @see https://basishub.github.io/basis-next/#/dwc/attributes-directives
 rem  */
 

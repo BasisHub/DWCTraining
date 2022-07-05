@@ -1,9 +1,12 @@
 rem /**
 rem  * DWCThemer.bbj
 rem  * This program is the result of starting with the DWC2.bbj program and
-rem  * applying a custom theme which was created by the DWCThemer
-rem  * 
-rem  * @app-style-bottom: An attribute directive used to attach a style at the bottom of the page. 
+rem  * applying a custom theme which was created by the DWC Themer.  For this
+rem  * example, the CSS file created by the DWC Themer is in the css subdirectory
+rem  * and named 'MyDwcTheme.css'.  The contents of the file are loaded in a
+rem  * theme! variable and applied via the '@app-style-bottom' attribute directive.
+rem  *
+rem  * @app-style-bottom: An attribute directive used to attach a style at the bottom of the page.
 rem  *                    The directive accepts plain CSS.
 rem  * @see https://basishub.github.io/basis-next/#/dwc/attributes-directives
 rem  */
