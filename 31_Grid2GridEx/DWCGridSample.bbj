@@ -5,9 +5,12 @@ use com.basiscomponents.db.DataRow
 
 wnd! = BBjAPI().openSysGui("X0").addWindow(10,10,800,600,"Hello BBj DWC")
 wnd!.setCallback(BBjAPI.ON_CLOSE,"byebye")
-wnd!.setCallback(BBjAPI.ON_RESIZE,"resize")
 
-grid! = new BBjGridExWidget(wnd!,100,10,10,780,500)
+
+cw! = wnd!.addChildWindow("",$00108000$,BBjAPI().getSysGui().getAvailableContext())
+cw!.setStyle("height","100%")
+cw!.setStyle("width","100%")
+grid! = new BBjGridExWidget(cw!)
 grid!.setCallback(BBjAPI.ON_GRID_SELECT_ROW,"on_grid_select")
 
 selection! = wnd!.addStaticText(101,10,530,400,30,"")
@@ -64,13 +67,7 @@ on_grid_select:
   selection!.setText(info$)
 return
 
-resize:
-  ev! = BBjAPI().getLastEvent()
-  h = ev!.getHeight()
-  w = ev!.getWidth()
-  grid!.setSize(w-20,h-100)
-  selection!.setLocation(10,h-70)
-return
+
 
 byebye:
 release
