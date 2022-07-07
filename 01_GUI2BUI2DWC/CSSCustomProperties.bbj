@@ -83,9 +83,6 @@ release
 
 rem Apply CSS styles and define the window layout via CSS
 ApplyStylesAndLayout:
-    rem Set the app's theme to follow the client's operating system's light/dark mode
-    myWindow!.setAttribute("@app-theme-switcher", "dark=dark light=light")
-
     rem Define the main window's layout using CSS Grid
     json! = new JsonObject()
     json!.addProperty("box-sizing", "border-box")
