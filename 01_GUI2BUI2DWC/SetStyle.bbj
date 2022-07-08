@@ -1,0 +1,119 @@
+rem /**
+rem  * SetStyle.bbj
+rem  * @author ndecker
+rem  *
+rem  */
+
+
+rem If the app is running in BUI, switch it automatically to run in the DWC client instead
+rem ================================================================================
+if (info(3, 6) = "5") then
+    bui! = BBjAPI().getBuiManager()
+    url! = bui!.getUrl().replaceAll("apps", "webapp")
+    action! = bui!.urlAction(url!)
+    bui!.setEndAction(action!)
+    release
+endif
+
+
+rem Create the main window, define its ON_CLOSE callback, and set its layout and other CSS
+rem ================================================================================
+mySysGui! = BBjAPI().openSysGui("X0")
+myWindow! = mySysGui!.addWindow("Setting a BBjButton's Styles", $00100083$)
+myWindow!.setCallback(BBjAPI.ON_CLOSE, "onClose")
+json! = new JsonObject()
+json!.addProperty("box-sizing", "border-box")
+json!.addProperty("width", "100%")
+json!.addProperty("height", "100%")
+json!.addProperty("padding", "var(--bbj-space-l)")
+json!.addProperty("display", "grid")
+json!.addProperty("gap", "var(--bbj-space-2xl)")
+json!.addProperty("grid-template-columns", "1fr")
+json!.addProperty("justify-items", "stretch")
+json!.addProperty("align-items", "stretch")
+myWindow!.setPanelStyle("@element", json!.toString())
+
+
+rem Add a child window container for sample controls
+myChildWindow! = myWindow!.addChildWindow("Sample Controls", $00109000$, BBjAPI().getSysGui().getAvailableContext())
+json! = new JsonObject()
+json!.addProperty("width", "100%")
+json!.addProperty("padding", "var(--bbj-space)")
+json!.addProperty("display", "flex")
+json!.addProperty("gap", "var(--bbj-space)")
+json!.addProperty("align-items", "center")
+myChildWindow!.setStyle("@element", json!.toString())
+myButton1! = myChildWindow!.addButton("BBjButton")
+myButton1!.setAttribute("expanse", "l")
+myButton2! = myChildWindow!.addButton("BBjButton")
+myButton2!.setAttribute("expanse", "l")
+myButton3! = myChildWindow!.addButton("BBjButton")
+myButton3!.setAttribute("expanse", "l")
+myButton4! = myChildWindow!.addButton("BBjButton")
+myButton4!.setAttribute("expanse", "l")
+myButton5! = myChildWindow!.addButton("BBjButton")
+myButton5!.setAttribute("expanse", "l")
+myButton6! = myChildWindow!.addButton("BBjButton")
+myButton6!.setAttribute("expanse", "l")
+
+
+rem Set the button's style via setStyle() and CSS
+myButton1!.setStyle("background", "purple")
+myButton1!.setStyle("color", "yellow")
+
+rem Set the button's style via the @element directive and standard CSS
+rem Note that this does not produce the 'expected' results
+json! = new JsonObject()
+json!.addProperty("background", "purple")
+json!.addProperty("color", "yellow")
+myButton2!.setStyle("@element", json!.toString())
+
+rem Set the button's style via the @element directive and modifying CSS custom properties in a JsonObject
+json! = new JsonObject()
+json!.addProperty("--bbj-button-background", "purple")
+json!.addProperty("--bbj-button-color", "yellow")
+myButton3!.setStyle("@element", json!.toString())
+
+rem Set the button's style via the setstyle() method and modifying CSS custom properties
+myButton4!.setStyle("--bbj-button-background", "purple")
+myButton4!.setStyle("--bbj-button-color", "yellow")
+
+rem Set the button's style via the shadow DOM parts
+json! = new JsonObject()
+json!.addProperty("background", "purple")
+json!.addProperty("color", "yellow")
+jsonButton! = new JsonObject()
+jsonButton!.addProperty("&::part(control)", json!.toString())
+myButton5!.setStyle("@element", jsonButton!.toString())
+
+rem Set the button's style by setting a style and injecting CSS
+myButton6!.addStyle("button-6")
+css! = ".button-6::part(control) { background: purple; color: yellow;}"
+myWindow!.setAttribute("@app-style-top", css!)
+
+
+rem Process events
+process_events
+
+
+rem Subroutines
+rem ================================================================================
+
+rem Exit the program
+onClose:
+release
+
+
+rem Declares
+declare auto BBjSysGui mySysGui!
+declare auto BBjTopLevelWindow myWindow!
+declare auto BBjChildWindow myChildWindow!
+declare auto BBjButton myButton1!
+declare auto BBjButton myButton2!
+declare auto BBjButton myButton3!
+declare auto BBjButton myButton4!
+declare auto JsonObject json!
+declare auto JsonObject jsonButton!
+
+rem USE statements
+use com.google.gson.JsonObject
