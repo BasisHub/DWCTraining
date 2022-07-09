@@ -1,0 +1,33 @@
+use ::BBjGridExWidget/BBjGridExWidget.bbj::BBjGridExWidget
+use com.basiscomponents.db.ResultSet
+use com.basiscomponents.db.DataRow
+
+wnd! = BBjAPI().openSysGui("X0").addWindow("Hello BBj DWC", $01111083$)
+wnd!.setPanelStyle("height","100%")
+
+cw! = wnd!.addChildWindow("",$00108000$,BBjAPI().getSysGui().getAvailableContext())
+cw!.setStyle("height","100%")
+cw!.setStyle("width","100%")
+grid! = new BBjGridExWidget(cw!)
+
+rs! = new ResultSet()
+
+record! = new DataRow()
+record!.setFieldValue("LAST_NAME","Picard")
+record!.setFieldValue("FIRST_NAME","Jean-Luc")
+rs!.add(record!)
+
+record! = new DataRow()
+record!.setFieldValue("LAST_NAME","Spock")
+record!.setFieldValue("FIRST_NAME","S'Chn T'Gai")
+rs!.add(record!)
+
+record! = new DataRow()
+record!.setFieldValue("LAST_NAME","Uhura")
+record!.setFieldValue("FIRST_NAME","Nyota")
+rs!.add(record!)
+
+grid!.setData(rs!)
+
+process_events
+

@@ -1,0 +1,19 @@
+use com.basiscomponents.db.DataRow
+use com.basiscomponents.db.ResultSet
+
+rs! = new ResultSet()
+
+record! = new DataRow()
+record!.setFieldValue("LAST_NAME","Picard")
+record!.setFieldValue("FIRST_NAME","Jean-Luc")
+rs!.add(record!)
+
+record! = new DataRow()
+record!.setFieldValue("LAST_NAME","Spock")
+record!.setFieldValue("FIRST_NAME","S'Chn T'Gai")
+rs!.add(record!)
+
+record! = new DataRow()
+record!.setFieldValue("LAST_NAME","Uhura")
+record!.setFieldValue("FIRST_NAME","Nyota")
+rs!.add(record!)

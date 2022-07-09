@@ -1,0 +1,16 @@
+use com.basiscomponents.db.DataRow
+
+record! = new DataRow()
+record!.setFieldValue("LAST_NAME","Picard")
+record!.setFieldValue("FIRST_NAME","Jean-Luc")
+
+record!.setFieldValue("DOB",java.sql.Date.valueOf("2305-07-23"))
+record!.setFieldAttribute("DOB","DATEMASK","%Dl, %Dz. of %Ml, %Yl")
+
+PRINT 
+: record!.getFieldAsString("LAST_NAME")+", "+
+: record!.getFieldAsString("LAST_NAME")+", born "+
+: DATE(record!.getFieldAsNumber("DOB"):
+: record!.getFieldAttribute("DOB","DATEMASK"))
+
+

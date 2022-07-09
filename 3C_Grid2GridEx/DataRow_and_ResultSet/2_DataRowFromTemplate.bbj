@@ -1,0 +1,16 @@
+use com.basiscomponents.db.DataRow
+
+TPL$="LAST_NAME:C(25*),FIRST_NAME:C(25*),DOB:N(7)"
+DIM R$:TPL$
+
+R.LAST_NAME$="Picard"
+R.FIRST_NAME$="Jean-Luc"
+R.DOB=JUL(2305,7,23)
+
+record! = DataRow.fromTemplate(TPL$,R$)
+
+PRINT 
+: record!.getFieldAsString("LAST_NAME")+", "+
+: record!.getFieldAsString("LAST_NAME")+", born "+
+: DATE(record!.getFieldAsNumber("DOB"):"%Dl, %Dz. of %Ml, %Yl")
+
