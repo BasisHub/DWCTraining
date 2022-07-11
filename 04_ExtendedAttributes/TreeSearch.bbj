@@ -1,0 +1,209 @@
+rem /**
+rem  * TreeSearch.bbj
+rem  *
+rem  * This program lets you experiment with different attributes of the BBjTree.
+rem  * It also enables searching on the two tree controls, and adds a global
+rem  * search so that we can search both trees simultaneously.
+rem  *
+rem  */
+
+
+rem If the app is running in BUI, switch it automatically to run in the DWC client instead
+rem ================================================================================
+if (info(3, 6) = "5") then
+    bui! = BBjAPI().getBuiManager()
+    url! = bui!.getUrl().replaceAll("apps", "webapp")
+    action! = bui!.urlAction(url!)
+    bui!.setEndAction(action!)
+    release
+endif
+
+
+rem Create the main window
+wnd! = BBjAPI().openSysGui("X0").addWindow("BBj Tree Search",$00100083$)
+wnd!.setCallback(BBjAPI.ON_CLOSE,"eoj")
+
+rem Define the main window's layout using CSS Grid
+json! = new JsonObject()
+json!.addProperty("box-sizing", "border-box")
+json!.addProperty("width", "100%")
+json!.addProperty("height", "100%")
+json!.addProperty("padding", "var(--bbj-space-l)")
+json!.addProperty("display", "grid")
+json!.addProperty("gap", "var(--bbj-space-xl)")
+json!.addProperty("grid-template-columns", "1fr")
+json!.addProperty("grid-template-rows", "auto auto 1fr")
+json!.addProperty("justify-items", "stretch")
+json!.addProperty("align-items", "stretch")
+wnd!.setPanelStyle("@element", json!.toString())
+
+rem Define the CSS for the BBjChildWindows that will be applied after we create them
+jsonChildWindow! = new JsonObject()
+jsonChildWindow!.addProperty("border-radius", "var(--bbj-border-radius)")
+jsonChildWindow!.addProperty("border-color", "var(--bbj-color-default-dark)")
+jsonChildWindow!.addProperty("padding", "var(--bbj-space) var(--bbj-space) var(--bbj-space-m) var(--bbj-space)")
+jsonChildWindow!.addProperty("display", "flex")
+jsonChildWindow!.addProperty("gap", "var(--bbj-space-3xl)")
+jsonChildWindow!.addProperty("overflow", "auto")
+
+rem Define the options window with toggleable attributes
+optsWnd! = wnd!.addChildWindow("BBj Tree's Boolean Attributes", $00109000$, BBjAPI().getSysGui().getAvailableContext())
+optsWnd!.setPanelStyle("@element", jsonChildWindow!.toString())
+
+rem Define the attributes in a vector that will be used to create checkboxes
+vectAttributes! = BBjAPI().makeVector()
+vectAttributes!.addItem("connect"); vectAttributes!.addItem("no-group-icons"); vectAttributes!.addItem("no-leaf-icons")
+vectAttributes!.addItem("multi-selection"); vectAttributes!.addItem("multi-selection-by-click")
+vectAttributes!.addItem("contiguous-selection"); vectAttributes!.addItem("allow-deselection-by-click")
+
+rem Create the checkboxes for the attributes
+for i = 0 to vectAttributes!.size() - 1
+    attrib! = str(vectAttributes!.getItem(i))
+    chk! = optsWnd!.addCheckBox(attrib!)
+    chk!.setName(attrib!)
+    chk!.setCallback(BBjCheckBox.ON_CHECK_OFF, "onOptsCheckOff")
+    chk!.setCallback(BBjCheckBox.ON_CHECK_ON, "onOptsCheckOn")
+next
+
+rem Create a global search window and apply our custom CSS that we defined earlier
+searchWnd! = wnd!.addChildWindow("Global Search", $00109000$, BBjAPI().getSysGui().getAvailableContext())
+searchWnd!.setPanelStyle("@element", jsonChildWindow!.toString())
+globalSearch! = searchWnd!.addEditBox("",$$, "search")
+globalSearch!.setPlaceholder("Type to search both trees")
+globalSearch!.setStyle("width", "100%")
+globalSearch!.setCallback(globalSearch!.ON_EDIT_MODIFY , "onGlobalSearch")
+
+rem Create the BBjTree control child window
+treeWnd! = wnd!.addChildWindow("BBjTree Controls", $00109000$, BBjAPI().getSysGui().getAvailableContext())
+treeWnd!.setPanelStyle("@element", jsonChildWindow!.toString())
+json! = new JsonObject()
+json!.addProperty("box-sizing", "border-box")
+json!.addProperty("width", "100%")
+json!.addProperty("height", "100%")
+json!.addProperty("padding", "var(--bbj-space) var(--bbj-space) var(--bbj-space-m) var(--bbj-space)")
+json!.addProperty("display", "grid")
+json!.addProperty("gap", "var(--bbj-space-3xl)")
+json!.addProperty("grid-template-columns", "1fr 1fr")
+json!.addProperty("justify-items", "stretch")
+json!.addProperty("align-items", "stretch")
+REM json!.addProperty("max-height", "28em")
+REM json!.addProperty("height", "28em")
+json!.addProperty("overflow", "auto")
+treeWnd!.setPanelStyle("@element", json!.toString())
+
+rem Define custom styling for the trees
+jsonTree! = new JsonObject()
+jsonTree!.addProperty("background", "hsl( var(--bbj-color-default-h), var(--bbj-color-default-s), 96%)")
+jsonTree!.addProperty("border", "1px solid hsl( var(--bbj-color-default-h), var(--bbj-color-default-s), 92%)")
+jsonTree!.addProperty("border-radius", "var(--bbj-border-radius)")
+jsonTree!.addProperty("border-top-width", "0")
+
+rem Add the first tree and define a custom error message via the search-nodata attribute
+tree1! = treeWnd!.addTree()
+tree1!.setAttribute("search-input","true")
+tree1!.setAttribute("search-placeholder","Search first tree")
+tree1!.setStyle("@element", jsonTree!.toString())
+css! = "<div style='display: grid; grid-template-rows: 1fr 1fr; gap: 1em; padding: 1em; text-align: center; '>"
+css! = css! + "<bbj-icon name='alert-triangle' "
+css! = css! +  "style='margin:0 auto; font-size: 3rem; color: var(--bbj-color-warning-50); background: var(--bbj-color-warning-90); border-radius: 50%; padding: 0.15em; border: 4px solid var(--bbj-color-warning-50);"
+css! = css! +  "'></bbj-icon>"
+css! = css! + "<span style='color: var(--bbj-color-warning-25);'>Oops, we can't find that text in the tree!<br>But here's a custom icon and error message.</span>"
+css! = css! + "</div>"
+tree1!.setAttribute("search-nodata", css!)
+
+rem Change the collapsed and expanded icons via attributes
+tree1!.setAttribute("icon-collapsed","tabler:caret-right")
+tree1!.setAttribute("icon-expanded","tabler:caret-down")
+
+rem Create the second tree
+tree2! = treeWnd!.addTree()
+tree2!.setAttribute("search-input","true")
+tree2!.setAttribute("search-placeholder","Search second tree")
+tree2!.setStyle("@element", jsonTree!.toString())
+
+rem Add custom CSS to set the color of the icons in each tree
+wnd!.setAttribute("@app-style-bottom", "" +
+: ".first-tree {--bbj-tree-icon-fill: #ffa726 } "+
+: ".second-tree {--bbj-tree-icon-fill: #64b5f6 } ")
+
+gosub fillTrees
+gosub setDefaultAttributeCheckBoxes
+
+process_events
+
+eoj:
+release
+
+fillTrees:
+  DIM music$[2,4]
+  music$[0,0]="The Beatles"
+  music$[0,1]="Hey Jude",music$[0,2]="Let It Be",music$[0,3]="Twist and Shout",music$[0,4]="Yesterday"
+  music$[1,0]="Paul Simon"
+  music$[1,1]="Bridge Over Troubled Waters",music$[1,2]="Hearts and Bones",music$[1,3]="Kathy's Song",music$[1,4]="The Sound of Silence"
+  music$[2,0]="Willie Nelson"
+  music$[2,1]="Always On My Mind",music$[2,2]="Getting Over You",music$[2,3]="Old Fords and Natural Stone",music$[2,4]="This Morning"
+
+  tree1!.addStyle("first-tree")
+  tree1!.setRoot(0, "Musical Tree")
+
+  tree2!.setRoot(0, "Musical Tree")
+  tree2!.addStyle("second-tree")
+
+  nodeId = 0
+  for artist = 0 to 2
+        nodeId = nodeId+1
+        tree1!.addExpandableNode(nodeId,PARENT_ID,music$[artist,0])
+        tree2!.addExpandableNode(nodeId,PARENT_ID,music$[artist,0])
+        songParent = nodeId
+        for song = 1 to 4
+    nodeId = nodeId+1
+    tree1!.addNode(nodeId,songParent,music$[artist,song])
+    tree2!.addNode(nodeId,songParent,music$[artist,song])
+    next song
+  next artist
+
+  tree1!.expandNode(songParent)
+  tree2!.expandNode(songParent)
+return
+
+onGlobalSearch:
+    searchText! = cast(BBjEditModifyEvent, BBjAPI().getSysGui().getLastEvent()).getText()
+    tree1!.setAttribute("search-term", searchText!)
+    tree2!.setAttribute("search-term", searchText!)
+return
+
+setDefaultAttributeCheckBoxes:
+    optsWnd!.getControl("allow-deselection-by-click").setSelected(0)
+    optsWnd!.getControl("connect").setSelected(1)
+    optsWnd!.getControl("contiguous-selection").setSelected(0)
+    optsWnd!.getControl("multi-selection").setSelected(1)
+    optsWnd!.getControl("multi-selection-by-click").setSelected(0)
+    optsWnd!.getControl("no-group-icons").setSelected(0)
+    optsWnd!.getControl("no-leaf-icons").setSelected(0)
+return
+
+
+onOptsCheckOff:
+    e! = cast(BBjCheckOffEvent, BBjAPI().getSysGui().getLastEvent())
+    ctrl! = e!.getControl()
+    attribute! = ctrl!.getText()
+    tree1!.setAttribute(attribute!, "false")
+    tree2!.setAttribute(attribute!, "false")
+return
+
+
+onOptsCheckOn:
+    e! = cast(BBjCheckOnEvent, BBjAPI().getSysGui().getLastEvent())
+    ctrl! = e!.getControl()
+    attribute! = ctrl!.getText()
+    tree1!.setAttribute(attribute!, "true")
+    tree2!.setAttribute(attribute!, "true")
+return
+
+
+rem Declares
+declare auto JsonObject json!
+
+
+rem USE statements
+use com.google.gson.JsonObject
