@@ -18,12 +18,26 @@ st! = wnd!.addStaticText("First Name:")
 ed_firstname! = wnd!.addEditBox("")
 st! = wnd!.addStaticText("Last Name:")
 ed_lastname! = wnd!.addEditBox("")
-btn! = wnd!.addButton("Say Hello")
+
+rem use an icon from the tabular pool
+rem @see https://tabler-icons.io/
+rem https://basishub.github.io/basis-next/#/dwc/bbj-icon
+btnIcon$ = "<bbj-icon name='speakerphone'></bbj-icon>"
+
+rem use an icon from the feather pool
+rem @see https://feathericons.com/
+rem btnIcon$ = "<bbj-icon name='speaker' pool='feather'></bbj-icon>"
+
+rem use an icon from the fontawesome-free pool
+rem @see https://fontawesome.com/v5/search?m=free
+rem btnIcon$ = "<bbj-icon name='fas-microphone-alt' pool='fa'></bbj-icon>"
+
+btn! = wnd!.addButton("<html>Say Hello" + btnIcon$ +"</html>")
 
 btn!.setStyle("grid-column","2")
 
 btn!.setAttribute("expanse","xl")
-btn!.setAttribute("theme","success")
+btn!.setAttribute("theme","primary")
 
 wnd!.setCallback(BBjAPI.ON_CLOSE,"byebye")
 btn!.setCallback(BBjAPI.ON_BUTTON_PUSH,"sayhello")
