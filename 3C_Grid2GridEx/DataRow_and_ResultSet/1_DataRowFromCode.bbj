@@ -9,7 +9,7 @@ record!.setFieldAttribute("DOB","DATEMASK","%Dl, %Dz. of %Ml, %Yl")
 
 PRINT 
 : record!.getFieldAsString("LAST_NAME")+", "+
-: record!.getFieldAsString("LAST_NAME")+", born "+
+: record!.getFieldAsString("FIRST_NAME")+", born "+
 : DATE(record!.getFieldAsNumber("DOB"):
 : record!.getFieldAttribute("DOB","DATEMASK"))
 

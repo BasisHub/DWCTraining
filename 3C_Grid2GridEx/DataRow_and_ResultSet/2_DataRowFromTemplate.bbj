@@ -11,6 +11,6 @@ record! = DataRow.fromTemplate(TPL$,R$)
 
 PRINT 
 : record!.getFieldAsString("LAST_NAME")+", "+
-: record!.getFieldAsString("LAST_NAME")+", born "+
+: record!.getFieldAsString("FIRST_NAME")+", born "+
 : DATE(record!.getFieldAsNumber("DOB"):"%Dl, %Dz. of %Ml, %Yl")
 
