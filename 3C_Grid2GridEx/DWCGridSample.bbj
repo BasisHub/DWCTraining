@@ -3,17 +3,20 @@ use ::BBjGridExWidget/GxClientModels.bbj::GxClientRowModel
 use com.basiscomponents.db.ResultSet
 use com.basiscomponents.db.DataRow
 
-wnd! = BBjAPI().openSysGui("X0").addWindow(10,10,800,600,"Hello BBj DWC")
+wnd! = BBjAPI().openSysGui("X0").addWindow(10,10,800,600,"Hello BBj DWC",$01101083$)
+
+wnd!.setPanelStyle("height","100%")
+
 wnd!.setCallback(BBjAPI.ON_CLOSE,"byebye")
 
 
 cw! = wnd!.addChildWindow("",$00108000$,BBjAPI().getSysGui().getAvailableContext())
-cw!.setStyle("height","100%")
+cw!.setStyle("height","calc( 100% - 40px )")
 cw!.setStyle("width","100%")
 grid! = new BBjGridExWidget(cw!)
 grid!.setCallback(BBjAPI.ON_GRID_SELECT_ROW,"on_grid_select")
 
-selection! = wnd!.addStaticText(101,10,530,400,30,"")
+selection! = wnd!.addStaticText("")
 
 gosub setup_grid
 
