@@ -5,9 +5,17 @@ rem  * that this version uses the BBUtils class to register the Sample.css exter
 rem  * stylesheet with the application.
 rem  */
 
-resUrl! = ::BBUtils.bbj::BBUtils.applyCss("Sample", BBjAPI().getFileSystem().resolvePath("Sample.css"), 1)
-
 wnd! = BBjAPI().openSysGui("X0").addWindow("Hello BBj DWC", $01101083$)
+
+rem add the CSS file dynamically
+
+use java.nio.file.Files
+use java.nio.file.Paths
+
+fs! = BBjAPI().getFileSystem()
+css! = new String(Files.readAllBytes(Paths.get(fs!.resolvePath("Sample.css"))))
+wnd!.setAttribute("@app-style", css!)
+
 wnd!.addPanelStyle("mypanel")
 
 st! = wnd!.addStaticText("First Name:")
