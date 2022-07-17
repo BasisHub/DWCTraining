@@ -1,0 +1,260 @@
+rem /**
+rem  * DWCGrid.bbj
+rem  *
+rem  * This program demonstrate different ways of using CSS Grid
+rem  * to set the layout for an input form made up of static text
+rem  * controls and edit boxes.
+rem  *
+rem  */
+
+
+
+rem If the app is running in BUI, switch it automatically to run in the DWC client instead
+if info(3,6)="5" then
+    bui! = BBjAPI().getBuiManager()
+    url! = bui!.getUrl().replaceAll("apps", "webapp")
+    action! = bui!.urlAction(url!)
+    bui!.setEndAction(action!)
+    release
+endif
+
+
+rem Create the main window
+window! = BBjAPI().openSysGui("X0").addWindow("BBj DWC CSS Layout Samples", $00180093$)
+json! = new JsonObject()
+json!.addProperty("width", "100%")
+json!.addProperty("height", "100%")
+json!.addProperty("box-sizing", "border-box")
+json!.addProperty("display", "grid")
+json!.addProperty("grid-template-rows", "max-content minmax(16em, 1fr)")
+json!.addProperty("gap", "1em")
+json!.addProperty("padding", "1em")
+window!.setPanelStyle("@element", json!.toString())
+window!.setCallback(window!.ON_CLOSE, "onExit")
+gosub init
+
+
+rem Set control defaults by reducing the amount of padding in BBjListControls
+json! = new JsonObject()
+json!.addProperty("--bbj-list-padding", "0.1em")
+window!.setStyle("@root", json!.toString())
+
+
+rem Create the Demo Window
+winDemo! = window!.addChildWindow("CSS Layout", $00108000$, BBjAPI().getSysGui().getAvailableContext())
+winDemo!.setPanelStyle("background", "var(--bbj-color-primary-95)")
+winDemo!.setPanelStyle("border", "1px solid var(--bbj-color-primary-75)")
+winDemo!.addStyle("winDemo css-layout")
+
+
+rem Build the Contact Form in the Demo Window
+lbl! = winDemo!.addStaticText("First Name:", $8000$); lbl!.addStyle("label item")
+editFirstName! = winDemo!.addEditBox(""); editFirstName!.setPlaceholder("First name"); editFirstName!.addStyle("edit item")
+lbl! = winDemo!.addStaticText("Last Name:", $8000$); lbl!.addStyle("label item")
+editLastName! = winDemo!.addEditBox(""); editLastName!.setPlaceholder("Last name"); editLastName!.addStyle("edit item")
+lbl! = winDemo!.addStaticText("Company:", $8000$); lbl!.addStyle("label item")
+editCompany! = winDemo!.addEditBox(""); editCompany!.setPlaceholder("Company"); editCompany!.addStyle("edit item")
+lbl! = winDemo!.addStaticText("Email:", $8000$); lbl!.addStyle("label item")
+editEmail! = winDemo!.addEditBox(""); editEmail!.setPlaceholder("Email"); editEmail!.addStyle("edit item")
+lbl! = winDemo!.addStaticText("Country:", $8000$); lbl!.addStyle("label item")
+editCountry! = winDemo!.addEditBox("USA"); editCountry!.setPlaceholder("Country"); editCountry!.addStyle("edit item")
+lbl! = winDemo!.addStaticText("City:", $8000$); lbl!.addStyle("label item")
+editCity! = winDemo!.addEditBox("Albuquerque"); editCity!.setPlaceholder("City"); editCity!.addStyle("edit item")
+lbl! = winDemo!.addStaticText("State:", $8000$); lbl!.addStyle("label item")
+editState! = winDemo!.addEditBox("New Mexico"); editState!.setPlaceholder("State"); editState!.addStyle("edit item")
+lbl! = winDemo!.addStaticText("Zip Code:", $8000$); lbl!.addStyle("label item")
+editZip! = winDemo!.addEditBox("87109"); editZip!.setPlaceholder("Zip Code"); editZip!.addStyle("edit item")
+
+
+rem Create the options
+winOptions! = window!.addChildWindow("CSS Grid Properties", $00109800$, BBjAPI().getSysGui().getAvailableContext())
+json! = new JsonObject()
+json!.addProperty("width", "100%")
+json!.addProperty("height", "100%")
+json!.addProperty("box-sizing", "border-box")
+json!.addProperty("display", "grid")
+json!.addProperty("grid-template-columns", "auto 1fr")
+json!.addProperty("gap", "1em")
+winOptions!.setPanelStyle("@element", json!.toString())
+
+rem List of CSS Settings
+winChild! = winOptions!.addChildWindow("Select a CSS Layout", $00109000$, BBjAPI().getSysGui().getAvailableContext())
+winChild!.setStyle("@element", winStyle!.toString())
+opts! = ""; for i = 1 to 9; opts! = opts! + "CSS Layout " + str(i) + $0a$; next i
+listCssStyles! = winChild!.addListBox(opts!)
+listCssStyles!.selectIndex(0)
+listCssStyles!.setCallback(BBjListBox.ON_LIST_CLICK, "onCssStylesChange")
+
+rem Chosen CSS Style Preview
+winChild! = winOptions!.addChildWindow("CSS Preview", $00109000$, BBjAPI().getSysGui().getAvailableContext())
+winChild!.setStyle("@element", winStyle!.toString())
+cssPreview! = winChild!.addStaticText(hashStyles!.get("css-layout-1"))
+json! = new JsonObject()
+json!.addProperty("white-space", "pre-wrap")
+json!.addProperty("font-family", "Consolas, Monaco, Inconsolata, monospace")
+json!.addProperty("font-size", "85%")
+json!.addProperty("overflow", "auto")
+cssPreview!.setStyle("@element", json!.toString())
+window!.setAttribute("@app-style", hashStyles!.get("css-layout-1"))
+
+
+window!.setVisible(1)
+process_events
+
+
+rem ================================================================================================
+rem Subroutines
+rem ================================================================================================
+
+rem Handle the user exiting the app
+onExit:
+release
+
+
+rem Define all possible CSS styles and stick them in a hashmap for later retrieval
+init:
+    hashStyles! = new HashMap()
+
+    css! = $0a$ + "/* CSS Grid using ""auto 1fr"" where fr beats auto, so inputs wider than labels */" + $0a0a$
+    css! = css! + ".css-layout.BBjSimpleWindow { " + $0a$
+    css! = css! + "    display: grid; " + $0a$
+    css! = css! + "    grid-template-columns: auto 1fr; " + $0a$
+    css! = css! + "    align-items: center; " + $0a$
+    css! = css! + "    gap: var(--bbj-space); " + $0a$
+    css! = css! + "    padding: 1em; " + $0a$
+    css! = css! + "}" + $0a$
+    hashStyles!.put("css-layout-1", css!)
+
+
+    css! = $0a$ + "/* CSS Grid using ""1fr auto"" where fr beats auto, so labels wider than inputs */" + $0a0a$
+    css! = css! + ".css-layout.BBjSimpleWindow { " + $0a$
+    css! = css! + "    display: grid; " + $0a$
+    css! = css! + "    grid-template-columns: 1fr auto; " + $0a$
+    css! = css! + "    align-items: center; " + $0a$
+    css! = css! + "    gap: var(--bbj-space); " + $0a$
+    css! = css! + "    padding: 1em; " + $0a$
+    css! = css! + "}" + $0a$
+    hashStyles!.put("css-layout-2", css!)
+
+
+    css! = $0a$ + "/* CSS Grid using percentage and fr, so labels are 25% and inputs are the remaining width */" + $0a0a$
+    css! = css! + ".css-layout.BBjSimpleWindow { " + $0a$
+    css! = css! + "    display: grid; " + $0a$
+    css! = css! + "    grid-template-columns: 25% 1fr;" + $0a$
+    css! = css! + "    align-items: center; " + $0a$
+    css! = css! + "    gap: var(--bbj-space); " + $0a$
+    css! = css! + "    padding: 1em; " + $0a$
+    css! = css! + "}" + $0a$
+    hashStyles!.put("css-layout-3", css!)
+    window!.setAttribute("@app-style", css!)
+
+
+    css! = $0a$ + "/* CSS Grid using fr units, so inputs are 3 times wider than labels.  Why is this different from the previous?  HINT: percent vs fr */" + $0a0a$
+    css! = css! + ".css-layout.BBjSimpleWindow { " + $0a$
+    css! = css! + "    display: grid; " + $0a$
+    css! = css! + "    grid-template-columns: 1fr 3fr; " + $0a$
+    css! = css! + "    align-items: center; " + $0a$
+    css! = css! + "    gap: var(--bbj-space); " + $0a$
+    css! = css! + "    padding: 1em; " + $0a$
+    css! = css! + "}" + $0a$
+    hashStyles!.put("css-layout-4", css!)
+
+
+    css! = $0a$ + "/* CSS Grid using auto and fr with a 2-column layout */" + $0a0a$
+    css! = css! + ".css-layout.BBjSimpleWindow { " + $0a$
+    css! = css! + "    display: grid; " + $0a$
+    css! = css! + "    grid-template-columns: auto 1fr auto 1fr; " + $0a$
+    css! = css! + "    align-items: center; " + $0a$
+    css! = css! + "    gap: var(--bbj-space); " + $0a$
+    css! = css! + "    padding: 1em; " + $0a$
+    css! = css! + "}" + $0a$
+    hashStyles!.put("css-layout-5", css!)
+
+
+    css! = $0a$ + "/* CSS Grid using repeat syntax to do the same thing as the previous 2-column layout */" + $0a0a$
+    css! = css! + ".css-layout.BBjSimpleWindow { " + $0a$
+    css! = css! + "    display: grid; " + $0a$
+    css! = css! + "    grid-template-columns: repeat(2, auto 1fr); " + $0a$
+    css! = css! + "    align-items: center; " + $0a$
+    css! = css! + "    gap: var(--bbj-space); " + $0a$
+    css! = css! + "    padding: 1em; " + $0a$
+    css! = css! + "}" + $0a$
+    hashStyles!.put("css-layout-6", css!)
+
+
+    css! = $0a$ + "/* CSS Grid using repeat syntax with auto-fit to repeat the columns until the grid is filled */" + $0a0a$
+    css! = css! + ".css-layout.BBjSimpleWindow { " + $0a$
+    css! = css! + "    display: grid; " + $0a$
+    css! = css! + "    grid-template-columns: repeat(auto-fit, 100px 200px); " + $0a$
+    css! = css! + "    align-items: center; " + $0a$
+    css! = css! + "    gap: var(--bbj-space); " + $0a$
+    css! = css! + "    padding: 1em; " + $0a$
+    css! = css! + "}" + $0a$
+    hashStyles!.put("css-layout-7", css!)
+
+
+    css! = $0a$ + "/* CSS Grid with 2 cols and media queries to show 4 and 6 cols when there's more screen space.  "
+    css! = css! +  "You need to maximize the form for this to work, as the media query is based on the viewport width! */" + $0a0a$
+    css! = css! + ".css-layout.BBjSimpleWindow { " + $0a$
+    css! = css! + "    display: grid; " + $0a$
+    css! = css! + "    grid-template-columns: auto 1fr; " + $0a$
+    css! = css! + "    align-items: center; " + $0a$
+    css! = css! + "    gap: var(--bbj-space); " + $0a$
+    css! = css! + "    padding: 1em; " + $0a$
+    css! = css! + "}" + $0a$
+    css! = css! + "@media (min-width: 600px) { " + $0a$
+    css! = css! + "    .css-layout.BBjSimpleWindow { grid-template-columns: auto 1fr auto 1fr; } " + $0a$
+    css! = css! + "} " + $0a$
+    css! = css! + "@media (min-width: 900px) { " + $0a$
+    css! = css! + "    .css-layout.BBjSimpleWindow { grid-template-columns: auto 1fr auto 1fr auto 1fr; } " + $0a$
+    css! = css! + "} " + $0a$
+    hashStyles!.put("css-layout-8", css!)
+
+
+    css! = $0a$ + "/* Grid using repeat syntax with auto-fit and minmax to show columns in multiples of two */" + $0a0a$
+    css! = css! + ".css-layout.BBjSimpleWindow { " + $0a$
+    css! = css! + "    padding: 1em; " + $0a$
+    css! = css! + "    display: grid; " + $0a$
+    css! = css! + "    grid-template-columns: repeat(auto-fit, minmax(10ch, 1fr) minmax(20ch, 2fr)); " + $0a$
+    css! = css! + "    align-items: center; " + $0a$
+    css! = css! + "    gap: var(--bbj-space); " + $0a$
+    css! = css! + "    padding: 1em; " + $0a$
+    css! = css! + "}" + $0a$
+    hashStyles!.put("css-layout-9", css!)
+
+
+    rem Create a style to be applied later to the container windows
+    winStyle! = new JsonObject()
+    winStyle!.addProperty("display", "flex")
+    winStyle!.addProperty("flex-direction", "column")
+    winStyle!.addProperty("flex-grow", "1")
+    winStyle!.addProperty("align-items", "stretch")
+    winStyle!.addProperty("padding", "var(--bbj-space)")
+    winStyle!.addProperty("gap", "var(--bbj-space, 0.5em)")
+    winStyle!.addProperty("border", "var(--bbj-border-width) var(--bbj-border-style) var(--bbj-border-color-primary)")
+    winStyle!.addProperty("border-radius", "var(--bbj-border-radius)")
+return
+
+
+rem Callback for when the user changes the desired CSS Style
+onCssStylesChange:
+    e! = BBjAPI().getSysGui().getLastEvent()
+    style! = e!.getControl().getText().replaceAll(" ", "-").toLowerCase()
+    css! = hashStyles!.get(style!)
+
+    cssPreview!.setText(css!)
+    window!.setAttribute("@app-style", css!)
+return
+
+
+
+declare auto BBjTopLevelWindow window!
+declare auto BBjChildWindow winDemo!
+declare auto BBjChildWindow winOptions!
+declare auto BBjChildWindow winConfig!
+declare auto JsonObject json!
+declare auto BBjListClickEvent e!
+
+rem Use statements
+use com.google.gson.JsonObject
+use java.util.HashMap
