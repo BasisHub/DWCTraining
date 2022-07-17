@@ -94,7 +94,7 @@ next
 
 
 rem Create the window that contains the controls
-controlRow! = window!.addChildWindow("Controls", $00109800$, sysgui!.getAvailableContext())
+winOptions! = window!.addChildWindow("Controls", $00109800$, sysgui!.getAvailableContext())
 json! = new JsonObject()
 json!.addProperty("display", "flex")
 json!.addProperty("flex-direction", "row")
@@ -102,34 +102,34 @@ json!.addProperty("flex-wrap", "wrap")
 json!.addProperty("align-items", "stretch")
 json!.addProperty("gap", "var(--bbj-space)")
 json!.addProperty("overflow", "auto")
-controlRow!.setPanelStyle("@element", json!.toString())
+winOptions!.setPanelStyle("@element", json!.toString())
 
 rem Create the Options Group with the InputNSpinner to control the number of visible boxes
-winOptions! = controlRow!.addChildWindow("Options", $00109000$, sysgui!.getAvailableContext())
-winOptions!.setStyle("display", "flex")
-winOptions!.setStyle("flex-direction", "column")
-winOptions!.setStyle("align-items", "stretch")
-winOptions!.setStyle("padding", "var(--bbj-space)")
-winOptions!.setStyle("gap", "var(--bbj-space, 0.5em)")
-winOptions!.setStyle("border", "var(--bbj-border-width) var(--bbj-border-style) var(--bbj-border-color-primary)")
-winOptions!.setStyle("border-radius", "var(--bbj-border-radius)")
-lbl! = winOptions!.addStaticText("Num. Boxes")
-spinBoxes! = winOptions!.addInputNSpinner($$,"#0",3,15)
+winConfig! = winOptions!.addChildWindow("Config", $00109000$, sysgui!.getAvailableContext())
+winConfig!.setStyle("display", "flex")
+winConfig!.setStyle("flex-direction", "column")
+winConfig!.setStyle("align-items", "stretch")
+winConfig!.setStyle("padding", "var(--bbj-space)")
+winConfig!.setStyle("gap", "var(--bbj-space, 0.5em)")
+winConfig!.setStyle("border", "var(--bbj-border-width) var(--bbj-border-style) var(--bbj-border-color-primary)")
+winConfig!.setStyle("border-radius", "var(--bbj-border-radius)")
+lbl! = winConfig!.addStaticText("Num. Boxes")
+spinBoxes! = winConfig!.addInputNSpinner($$,"#0",3,15)
 spinBoxes!.setValue(numVisibleBoxes)
 spinBoxes!.setAttribute("expanse", "m")
 spinBoxes!.setStyle("max-width", "7em")
-btnShowCss! = winOptions!.addButton("Show CSS")
+btnShowCss! = winConfig!.addButton("Show CSS")
 btnShowCss!.setAttribute("expanse", "m")
 
 rem Wrap Group
-winWrap! = controlRow!.addChildWindow("Wrap", $00109000$, sysgui!.getAvailableContext())
+winWrap! = winOptions!.addChildWindow("Wrap", $00109000$, sysgui!.getAvailableContext())
 winWrap!.setStyle("@element", winStyle!.toString())
 listWrap! = winWrap!.addListBox(java.lang.String.join($0a$, java.util.Arrays.asList(vectWraps!)))
 listWrap!.setStyle("padding", "2px")
 listWrap!.selectIndex(vectWraps!.indexOf(wrap!))
 
 rem Direction Group
-winDirection! = controlRow!.addChildWindow("Direction", $00109000$, sysgui!.getAvailableContext())
+winDirection! = winOptions!.addChildWindow("Direction", $00109000$, sysgui!.getAvailableContext())
 winDirection!.setStyle("@element", winStyle!.toString())
 listDirection! = winDirection!.addListBox(java.lang.String.join($0a$, java.util.Arrays.asList(vectDirections!)))
 listDirection!.setStyle("padding", "2px")
@@ -137,7 +137,7 @@ listDirection!.selectIndex(vectDirections!.indexOf(direction!))
 
 rem Justification Group
 if (direction! = "row") then title$ = "Justification (H)" else title$ = "Justification (V)"
-winJustification! = controlRow!.addChildWindow(title$, $00109000$, sysgui!.getAvailableContext())
+winJustification! = winOptions!.addChildWindow(title$, $00109000$, sysgui!.getAvailableContext())
 winJustification!.setStyle("@element", winStyle!.toString())
 listJustification! = winJustification!.addListBox(java.lang.String.join($0a$, java.util.Arrays.asList(vectJustifications!)))
 listJustification!.setStyle("padding", "2px")
@@ -145,14 +145,14 @@ listJustification!.selectIndex(vectJustifications!.indexOf(justification!))
 
 rem Alignment Group
 if (direction! = "row") then title$ = "Alignment (V)" else title$ = "Alignment (H)"
-winAlignments! = controlRow!.addChildWindow(title$, $00109000$, sysgui!.getAvailableContext())
+winAlignments! = winOptions!.addChildWindow(title$, $00109000$, sysgui!.getAvailableContext())
 winAlignments!.setStyle("@element", winStyle!.toString())
 listAligment! = winAlignments!.addListBox(java.lang.String.join($0a$, java.util.Arrays.asList(vectAlignments!)))
 listAligment!.setStyle("padding", "2px")
 listAligment!.selectIndex(vectAlignments!.indexOf(alignment!))
 
 rem Item Flex-Grow Group
-winGrow! = controlRow!.addChildWindow("Item flex-grow", $00109000$, sysgui!.getAvailableContext())
+winGrow! = winOptions!.addChildWindow("Item flex-grow", $00109000$, sysgui!.getAvailableContext())
 winGrow!.setStyle("@element", winStyle!.toString())
 listGrow! = winGrow!.addListBox(java.lang.String.join($0a$, java.util.Arrays.asList(vectGrows!)))
 listGrow!.setStyle("padding", "2px")
@@ -405,9 +405,9 @@ return
 rem Declares
 declare auto BBjSysGui sysgui!
 declare auto BBjTopLevelWindow window!
-declare auto BBjChildWindow controlRow!
-declare auto BBjChildWindow winDemo!
 declare auto BBjChildWindow winOptions!
+declare auto BBjChildWindow winDemo!
+declare auto BBjChildWindow winConfig!
 declare auto BBjChildWindow winDirection!
 declare auto BBjChildWindow winJustification!
 declare auto BBjChildWindow winAlignments!
