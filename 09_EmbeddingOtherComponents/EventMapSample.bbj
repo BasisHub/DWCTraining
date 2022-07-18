@@ -1,0 +1,125 @@
+rem this is the sample from BASIS documentation
+rem see https://documentation.basis.cloud/BASISHelp/WebHelp/bbjevents/BBjNativeJavaScriptEvent/BBjNativeJavaScriptEvent_getEventMap.htm
+
+rem ' BBjNativeJavaScriptEvent::getEventMap
+print info(0,0)," ",info(0,1)," ",info(1,0)," ",info(1,1)
+client = 0
+if info(3,6)<>"5" and info(3,6)<>"6" then
+   client = msgbox("BBjHtmlView Client",7+32+512,"BBjHtmlView","Swing","JavaFX","Chromium")
+   switch client
+      case 1; rem ' Swing
+         print stbl("!OPTIONS","CHROMIUM_HTMLVIEW=FALSE",ERR=*NEXT)
+         print stbl("!OPTIONS","JAVAFX_HTMLVIEW=FALSE",ERR=*NEXT)
+         break
+      case 2; rem ' JavaFX
+         print stbl("!OPTIONS","CHROMIUM_HTMLVIEW=FALSE",ERR=*NEXT)
+         print stbl("!OPTIONS","JAVAFX_HTMLVIEW=TRUE",ERR=*NEXT)
+         break
+      case 3; rem ' Chromium
+         print stbl("!OPTIONS","CHROMIUM_HTMLVIEW=TRUE",ERR=*NEXT)
+         print stbl("!OPTIONS","JAVAFX_HTMLVIEW=TRUE",ERR=*NEXT)
+         break
+   swend
+endif
+sysgui = unt
+open (sysgui)"X0"
+sysgui! = bbjapi().getSysGui()
+title$ = "BBjNativeJavaScriptEvent::getEventMap"
+window! = sysgui!.addWindow(10,10,500,400,title$,$00090083$,$$)
+window!.setCallback(window!.ON_CLOSE,"eoj")
+buttonHtml$ = "<button onclick='event.myElement=""button""; event.mystuff=this.innerText; basisDispatchNativeEvent(event);'>Button Title</button>"
+inputHtml$ = "<input type='text' value='Text Title' oninput='event.myElement=""input""; event.mystuff=this.value; basisDispatchNativeEvent(event);'>"
+textAreaText$ = "<textarea rows='2' cols='20' onselect='event.myElement=""textarea""; event.mystuff=this.value; basisDispatchNativeEvent(event);'>Text Area</textarea>"
+selectHtml$ = "<select onchange='event.myElement=""select""; event.mystuff=this.value; basisDispatchNativeEvent(event);'><option>First</option><option selected>Second</option><option>Third</option></select>"
+radioHtml$ = "<label>Radio 1<input type='radio' name='group' value='Radio 1' checked onclick='event.myElement=""radio""; event.mystuff=this.value; basisDispatchNativeEvent(event);'></label>"
+radioHtml$ = radioHtml$ + "<label>Radio 2<input type='radio' name='group' value='Radio 2' onclick='event.myElement=""radio""; event.mystuff=this.value; basisDispatchNativeEvent(event);'></label>"
+meterHtml$ = "<meter id='meter' min='0' max='10' value='5' style='height: 30px; width: 100%; padding: 4px 5px;' onwheel='event.myElement=""meter""; event.mystuff=this.value; basisDispatchNativeEvent(event);'></meter>"
+html$ = "<html><style>#example th {font-weight: bold; font-size: 14px; background: #ddd; }</style>"
+html$ = html$ + "<table style='width: 100%; border-collapse: collapse;' border='1' id='example'><tr><th>HTML Element</th><th>Example</th><th>Instructions</th></tr>"
+html$ = html$ + "<tr><td>button</td><td>"+buttonHtml$+"</td><td>Click</td></tr>"
+html$ = html$ + "<tr><td>text</td><td>"+inputHtml$+"</td><td>Change Text</td></tr>"
+html$ = html$ + "<tr><td>textarea</td><td>"+textAreaText$+"</td><td>Select Text</td></tr>"
+html$ = html$ + "<tr><td>select</td><td>"+selectHtml$+"</td><td>Select Item</td></tr>"
+html$ = html$ + "<tr><td>radio</td><td>"+radioHtml$+"</td><td>Check Radio</td></tr>"
+html$ = html$ + "<tr><td>meter</td><td>"+meterHtml$+"</td><td>Mousewheel Over Meter</td></tr>"
+html$ = html$ + "</table><p>"
+html$ = html$ + "<div style='font-weight: bold;'>JavaScript Function Call Examples:</div>"
+html$ = html$ + "1) External Function Call with JavaScript alert:  <button id='btn1' onclick='alertText(event);'> click me </button><br>"
+html$ = html$ + "2) Injected Event Listener: <button id='btn2'>click me </button><br>"
+html$ = html$ + "3) Dispatch Custom Event: <button id='btn3'>custom</button><br>"
+html$ = html$ + "</html>"
+htmlview! = window!.addHtmlView(101,10,10,480,380,html$)
+htmlview!.setCallback(htmlview!.ON_PAGE_LOADED,"OnPageLoaded")
+process_events
+eoj:
+release
+OnJSEvent:
+event! = sysgui!.getLastEvent()
+name$ = event!.getEventName()
+map! = event!.getEventMap()
+mystuff! = map!.get("mystuff")
+myElement$ = map!.get("myElement").replaceAll("\""","")
+switch myElement$
+    case "meter"
+        currentValue = htmlview!.executeScript(doc$ + ".getElementById('meter').value;")
+        wheelDirection = fnWheelDirection(map!)
+        script$ = doc$ + ".getElementById('meter').value="+ str(currentValue + wheelDirection)
+        htmlview!.executeScript(script$)
+        break
+    case default
+        print "getEventName() = ",name$
+        print "getEventMap() = ",map!
+        window!.focus()
+        x = msgbox(str(map!),64+32768,name$+" "+str(mystuff!))
+swend
+return
+def fnWheelDirection(map!)
+    w = 0, w! = map!.get("wheelDelta"); if w!<>null() then w = num(w!)
+    if w then return sgn(w)
+    d = 0, d! = map!.get("deltaY"); if d!<>null() then d = num(d!)
+    return sgn(-d)
+fnend
+OnPageLoaded:
+htmlview!.setCallback(htmlview!.ON_NATIVE_JAVASCRIPT,"OnJSEvent")
+htmlview!.clearCallback(htmlview!.ON_PAGE_LOADED); rem ' only do this once
+bui = info(3,6)="5"
+doc$ = iff(bui,"$doc","document")
+wnd$ = iff(bui,"$wnd","window")
+js$ = "// External JS Function" + $090a$
+js$ = js$ + "function alertText(event) {txt=event.target.innerText;alert('JS alert: '+txt);"
+js$ = js$ + "event.myElement=""jsfunction""; event.mystuff=txt;"
+js$ = js$ + "window.basisDispatchNativeEvent(event); }"
+htmlview!.injectScript(js$,1)
+js$ = "// Dynamically Injected Event Listener" + $090a$
+js$ = js$ + doc$+".getElementById('btn2').addEventListener('click',function(event){"
+js$ = js$ + "event.myElement=""jsfunction""; event.mystuff = "+doc$+".getElementById('btn2').innerText;"
+js$ = js$ + wnd$+".basisDispatchNativeEvent(event); });"
+htmlview!.executeScript(js$)
+js$ = "// Custom Event Object" + $090a$
+js$ = js$ + doc$+".getElementById('btn3').addEventListener('click',function(event){"
+js$ = js$ + "var custom=new CustomEvent('custom_event',{detail:{message:'hello',time:new Date(),},bubbles:true,cancelable:true});"
+js$ = js$ + "var element="+doc$+".getElementById('btn3');"
+js$ = js$ + "custom.myElement=""jsfunction""; custom.mystuff = "+doc$+".getElementById('btn3').innerText;"
+rem ' BUI basisDispatchCustomEvent first arg can be a DOM Event or DOM Element:
+rem js$ = js$ + wnd$+".basisDispatchCustomEvent(event,custom);"
+js$ = js$ + wnd$+".basisDispatchCustomEvent(element,custom);"
+js$ = js$ + "});"
+htmlview!.executeScript(js$)
+print "getClientType: ",htmlview!.getClientType(err=*next)
+print "getClientVersion: ",htmlview!.getClientVersion(err=*next)
+return
+def fnhtml$(string!,_html)
+  html! = new StringBuffer("")
+  if string!.length() then
+    for i=0 to string!.length()-1
+      c = string!.codePointAt(i)
+      if c<128 then html!.append(chr(c)) else html!.append("&#").append(str(c)).append(";"); _html=1
+    next i
+    if _html then
+       html!.insert(0,"<html>")
+    endif
+  endif
+  print string!," = ",html!
+  if _html then return html!.toString().replaceAll($0a$,"<br>")
+  return html!.toString()
+fnend
