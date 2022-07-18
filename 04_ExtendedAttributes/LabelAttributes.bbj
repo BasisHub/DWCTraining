@@ -1,0 +1,68 @@
+rem /**
+rem  * LabelAttributes.bbj
+rem  *
+rem  * This app compares using label attributes versus using
+rem  * BBjStaticText controls for the labels of input controls.
+rem  *
+rem  */
+
+
+rem If the app is running in BUI, switch it automatically to run in the DWC client instead
+rem ================================================================================
+if (info(3, 6) = "5") then
+    bui! = BBjAPI().getBuiManager()
+    url! = bui!.getUrl().replaceAll("apps", "webapp")
+    action! = bui!.urlAction(url!)
+    bui!.setEndAction(action!)
+    release
+endif
+
+
+rem Ask if we should use label attributes or create discrete labels with BBjStaticText controls
+labelAttributes = msgbox("Use Label Attributes?",4+32)=6
+
+sysgui = unt
+open (sysgui)"X0"
+sysgui! = bbjapi().getSysGui()
+title$ = iff(labelAttributes, "Using Label Attributes", "Using Discrete Labels")
+window! = sysgui!.addWindow(title$,$00190083$)
+window!.setCallback(window!.ON_CLOSE, "onClose")
+json! = new JsonObject()
+json!.addProperty("box-sizing", "border-box")
+json!.addProperty("width", "100%")
+json!.addProperty("height", "100%")
+json!.addProperty("padding", "var(--bbj-space)")
+json!.addProperty("display", "grid")
+json!.addProperty("gap", "var(--bbj-space)")
+json!.addProperty("grid-template-columns", "auto")
+json!.addProperty("justify-items", "stretch")
+json!.addProperty("align-items", "stretch")
+window!.setPanelStyle("@element", json!.toString())
+
+
+rem Add the controls to the window
+if !(labelAttributes) then window!.addStaticText("Name:")
+myName! = window!.addEditBox("Joe Blow")
+if (labelAttributes) then myName!.setAttribute("label", "Name:")
+
+if !(labelAttributes) then window!.addStaticText("Company:")
+myCompany! = window!.addEditBox("BASIS International Ltd.")
+if (labelAttributes) then myCompany!.setAttribute("label", "Company:")
+
+if !(labelAttributes) then window!.addStaticText("Email:")
+myEmail! = window!.addEditBox("joeBlow@basis.com")
+if (labelAttributes) then myEmail!.setAttribute("label", "Email:")
+
+if !(labelAttributes) then
+    expanse! = "l"
+    myName!.setAttribute("expanse", expanse!)
+    myCompany!.setAttribute("expanse", expanse!)
+    myEmail!.setAttribute("expanse", expanse!)
+endif
+
+process_events
+
+onClose:
+release
+
+use com.google.gson.JsonObject
