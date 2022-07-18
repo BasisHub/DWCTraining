@@ -1,0 +1,66 @@
+rem ' https://www.chartjs.org/
+
+rem when in BUI we need to pass "$wnd" in scripts, in DWC and GUI it's "window"
+bui = info(3,6)="5"
+wnd$ = iff(bui,"$wnd","window")
+
+sysgui = unt
+open (sysgui)"X0"
+sysgui! = bbjapi().getSysGui()
+
+window! = sysgui!.addWindow(25,25,800,500,"Chart.js",$00090002$)
+window!.setCallback(window!.ON_CLOSE,"eoj")
+
+html$ = "<html></head><body><canvas id='myChart'></canvas></body></html>"
+htmlview! = window!.addHtmlView(102,20,70,760,430,html$,$$)
+htmlview!.setOpaque(0)
+htmlview!.setNoEdge(1)
+htmlview!.setCallback(htmlview!.ON_PAGE_LOADED,"handlePageLoaded")
+htmlview!.setCallback(htmlview!.ON_SCRIPT_LOADED,"handleScriptLoaded")
+
+
+process_events
+
+handlePageLoaded:
+  rem after the initial HTML is loaded we can inject the library
+  htmlview!.clearCallback(htmlview!.ON_PAGE_LOADED)
+  url$ = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.min.js"
+  htmlview!.injectUrl(url$,1)
+return
+
+handleScriptLoaded:
+  rem after the library is loaded we can work with it
+  rem ' https://www.chartjs.org/docs/latest/getting-started/
+  
+  htmlview!.clearCallback(htmlview!.ON_PAGE_LOADED)
+  js$ = ""
+  js$ = js$ + "var chartCanvas = document.getElementById('myChart');"
+  js$ = js$ + "var ctx = chartCanvas.getContext('2d');"
+  js$ = js$ + "var chart = new Chart(ctx, {"
+  js$ = js$ + "    type: 'line',"
+  js$ = js$ + "    data: {"
+  js$ = js$ + "        labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],"
+  js$ = js$ + "        datasets: ["
+  js$ = js$ + "         {"
+  js$ = js$ + "            label: 'Year 2021',"
+  js$ = js$ + "            backgroundColor: '#ff1a68',"
+  js$ = js$ + "            borderColor: '#ff1a68',"
+  js$ = js$ + "            data: [40, 20, 33, 22, 25, 15, 7]"
+  js$ = js$ + "         },"  
+  js$ = js$ + "         {"
+  js$ = js$ + "            label: 'Year 2022',"
+  js$ = js$ + "            backgroundColor: '#25c2a0',"
+  js$ = js$ + "            borderColor: '#25c2a0',"
+  js$ = js$ + "            data: [2, 10, 5, 2, 20, 30, 45]"  
+  js$ = js$ + "         },"   
+  js$ = js$ + "        ]"
+  js$ = js$ + "    }"
+  js$ = js$ + "});"
+  js$ = js$ + "window.myChart = chart;"
+  
+  htmlview!.injectScript(js$,1)
+return
+
+
+eoj:
+  release
