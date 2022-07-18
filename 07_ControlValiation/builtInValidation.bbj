@@ -1,0 +1,136 @@
+rem /**
+rem  * builtInValidation.bbj
+rem  *
+rem  * This program demonstrates some built-in client-side validation in
+rem  * addition to the form-level validation from the "formValidation.bbj" program.
+rem  *
+rem  * The program adds the "required" attribute to the first and last name
+rem  * fields to add client-side validation that ensures that the fields
+rem  * are not empty.
+rem  *
+rem  * The program also adds a regular expression pattern to the
+rem  * zip code field for client-side validation.  As long as the user
+rem  * types in text that matches the regex pattern, the control is
+rem  * considered to be valid.  The code uses "(\d{5})(-\d{4})?" for
+rem  * the pattern which is broken down as follows:
+rem  *  • the parens break the content down into 2 capturing groups
+rem  *  • (\d{5}) is the first capture group where
+rem  *     • \d indicates a digit, or 0-9
+rem  *     • {5} indicates that the previous token (the digit) must occur exactly 5 times
+rem  *  • the (-\d{4})? is the second capture group where
+rem  *    • the - matches the dash character, which is used with extended zip codes
+rem  *    • the \d{4} indicates that there must be exactly 4 digits
+rem  *    • the ending ? indicates that the second capturing group must exist exactly 0 or 1 times
+rem  *
+rem  * So in a nutshell, the pattern says that there must be 5 digits to be valid, but
+rem  * it's also valid if there are 5 digits followed by a dash and 4 digits.
+rem  * Therefore, 87109 and 87109-3432 would both be valid zip code entries.
+rem  */
+
+
+rem If the app is running in BUI, switch it automatically to run in the DWC client instead
+if info(3,6)="5" then
+    bui! = BBjAPI().getBuiManager()
+    url! = bui!.getUrl().replaceAll("apps", "webapp")
+    action! = bui!.urlAction(url!)
+    bui!.setEndAction(action!)
+    release
+endif
+
+
+rem Create the main window
+window! = BBjAPI().openSysGui("X0").addWindow("BBj DWC CSS Layout Samples", $00180093$)
+json! = new JsonObject()
+json!.addProperty("width", "100%")
+json!.addProperty("height", "100%")
+json!.addProperty("padding", "1em")
+json!.addProperty("box-sizing", "border-box")
+json!.addProperty("display", "grid")
+json!.addProperty("grid-template-columns", "auto 1fr")
+json!.addProperty("align-items", "center")
+json!.addProperty("gap", "var(--bbj-space)")
+json!.addProperty("padding", "1em")
+window!.setPanelStyle("@element", json!.toString())
+window!.setCallback(window!.ON_CLOSE, "onExit")
+
+
+rem Build the Contact Form
+lbl! = window!.addStaticText("* First Name:", $8000$)
+editFirstName! = window!.addEditBox(""); editFirstName!.setPlaceholder("First name")
+lbl! = window!.addStaticText("* Last Name:", $8000$)
+editLastName! = window!.addEditBox(""); editLastName!.setPlaceholder("Last name")
+lbl! = window!.addStaticText("Company:", $8000$)
+editCompany! = window!.addEditBox(""); editCompany!.setPlaceholder("Company")
+lbl! = window!.addStaticText("Email:", $8000$)
+editEmail! = window!.addEditBox(""); editEmail!.setPlaceholder("Email")
+lbl! = window!.addStaticText("Country:", $8000$)
+editCountry! = window!.addEditBox("USA"); editCountry!.setPlaceholder("Country")
+lbl! = window!.addStaticText("City:", $8000$)
+editCity! = window!.addEditBox("Albuquerque"); editCity!.setPlaceholder("City")
+lbl! = window!.addStaticText("State:", $8000$)
+editState! = window!.addEditBox("New Mexico"); editState!.setPlaceholder("State")
+lbl! = window!.addStaticText("Zip Code:", $8000$)
+editZip! = window!.addEditBox("87109"); editZip!.setPlaceholder("Zip Code")
+
+btnSubmit! = window!.addButton("Submit")
+btnSubmit!.setAttribute("theme", "outlined-primary")
+btnSubmit!.setAttribute("expanse", "xl")
+btnSubmit!.setStyle("grid-column", "1 / 3")
+btnSubmit!.setStyle("margin-top", "1em")
+btnSubmit!.setCallback(BBjButton.ON_FORM_VALIDATION, "OnFormValidation")
+
+rem Define the built-in client-side validation for the first and last name fields
+rem by setting them to be required
+editFirstName!.setAttribute("required", "true")
+editLastName!.setAttribute("required", "true")
+
+rem Define the built-in client-side validation for the zip code field
+rem by setting a valid regular expression pattern
+editZip!.setAttribute("pattern", "(\d{5})(-\d{4})?")
+
+
+window!.setVisible(1)
+process_events
+
+
+rem ================================================================================================
+rem Subroutines
+rem ================================================================================================
+
+rem Handle the user exiting the app
+onExit:
+release
+
+
+rem Handle the form validation
+OnFormValidation:
+    e! = BBjAPI().getSysGui().getLastEvent()
+    firstName! = e!.getText(editFirstName!)
+    lastName! = e!.getText(editLastName!)
+    if (len(firstName!) AND len(lastName!)) then
+        e!.accept(1)
+        temp = msgbox("You filled in the form successfully!", BBjSysGui.MSGBOX_ICON_INFORMATION, "Form Submitted Successfully", mode="theme=success")
+    else
+        e!.accept(0)
+        temp = msgbox("You didn't fill in your first and last names, which are required", BBjSysGui.MSGBOX_ICON_STOP, "Invalid Input", mode="theme=danger")
+    endif
+return
+
+
+declare auto BBjTopLevelWindow window!
+declare auto BBjStaticText lbl!
+declare auto BBjEditBox editFirstName!
+declare auto BBjEditBox editLastName!
+declare auto BBjEditBox editCompany!
+declare auto BBjEditBox editEmail!
+declare auto BBjEditBox editCountry!
+declare auto BBjEditBox editCity!
+declare auto BBjEditBox editState!
+declare auto BBjEditBox editZip!
+declare auto BBjButton btnSubmit!
+declare auto JsonObject json!
+declare auto BBjFormValidationEvent e!
+
+rem Use statements
+use com.google.gson.JsonObject
+use java.util.HashMap
