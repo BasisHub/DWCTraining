@@ -1,0 +1,53 @@
+rem 'https://shoelace.style/components/split-panel
+
+sysgui = unt
+open (sysgui)"X0"
+sysgui! = bbjapi().getSysGui()
+
+window! = sysgui!.addWindow(25,25,800,500,"Splitter",$00090002$)
+window!.setCallback(window!.ON_CLOSE,"eoj")
+
+uuid$ = "id" + java.util.UUID.randomUUID().toString().replace("-", "")
+
+html$ = "<sl-split-panel id='" + uuid$ + "' position='50' vertical style='height:100%; width:100%;'><sl-icon slot='handle' name='grip-vertical'></sl-icon></sl-split-panel>"
+htmlview! = window!.addHtmlView(102,20,20,760,460,html$,$$)
+
+rem create two child windows, one for top, one for bottom:
+
+top! = window!.addChildWindow(window!.getAvailableControlID(),1,1,1,1,"", $00108800$,BBjAPI().getSysGui().getAvailableContext())
+top!.addButton("This is the top panel").setAttribute("theme","danger")
+top!.setAttribute("slot", "start")
+
+bottom! = window!.addChildWindow(window!.getAvailableControlID(),1,1,1,1,"", $00108800$,BBjAPI().getSysGui().getAvailableContext())
+bottom!.addButton("This is the bottom panel").setAttribute("theme","success")
+bottom!.setAttribute("slot", "end")
+
+htmlview!.setOpaque(0)
+htmlview!.setNoEdge(1)
+htmlview!.setCallback(htmlview!.ON_PAGE_LOADED,"handlePageLoaded")
+
+process_events
+
+handlePageLoaded:
+  
+  rem after the initial HTML is loaded we can inject the library
+  htmlview!.clearCallback(htmlview!.ON_PAGE_LOADED)
+  url$ = "https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.69/dist/shoelace.js"
+  css$ = "https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.69/dist/themes/light.css"
+  script$ = "var link =  $doc.createElement('script');link.setAttribute('type','module');"+
+:           "link.setAttribute('src','" + url$ + "');" + 
+:           "document.head.appendChild(link);" + 
+:           "var csslink =  $doc.createElement('link');" + 
+:           "csslink.setAttribute('rel','stylesheet');" + 
+:           "csslink.setAttribute('href','" + css$ + "');" + 
+:           "document.head.appendChild(csslink);" +
+:           "document.getElementById('" + uuid$ + "').appendChild(document.getElementById('" + top!.getAttribute("id") + "'));"+
+:           "document.getElementById('" + uuid$ + "').appendChild(document.getElementById('" + bottom!.getAttribute("id") + "'));"
+
+  BBjAPI().getSysGui().executeScript(script$)
+  
+return
+
+
+eoj:
+  release
