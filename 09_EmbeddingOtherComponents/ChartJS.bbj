@@ -37,6 +37,7 @@ handleScriptLoaded:
   rem after the library is loaded we can work with it
   rem ' https://www.chartjs.org/docs/latest/getting-started/
   
+  htmlview!.clearCallback(htmlview!.ON_PAGE_LOADED)
   js$ = ""
   js$ = js$ + "var chartCanvas = document.getElementById('myChart');"
   js$ = js$ + "var ctx = chartCanvas.getContext('2d');"
@@ -67,7 +68,7 @@ handleScriptLoaded:
   js$ = js$ + "         const customEvent = new CustomEvent('legend-clicked',{"  
   js$ = js$ + "           detail:{text: item.text, index: item.datasetIndex, hidden: item.hidden}"  
   js$ = js$ + "         });"  
-  js$ = js$ + "         "+wnd$+".basisDispatchCustomEvent(chartCanvas, customEvent);"
+  js$ = js$ + "         window.basisDispatchCustomEvent(chartCanvas, customEvent);"
   js$ = js$ + "        }"
   js$ = js$ + "       }"
   js$ = js$ + "     }"
