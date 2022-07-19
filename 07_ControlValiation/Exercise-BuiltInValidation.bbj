@@ -7,7 +7,9 @@ rem  *
 rem  * Exercise Goals:
 rem  *  1) Add more validation so that the Email field is a required field.
 rem  *
-rem  *  2) Add a pattern validation to the Email field
+rem  *  2) Add a pattern validation to the Email field.  See the code below
+rem  *     for an example of a regular expression that validates an email
+rem  *     address.
 rem  *
 rem  */
 
