@@ -1,0 +1,10 @@
+rem this program creates a PDF and displays it in the client (in DWC and BUI):
+
+lp = unt
+open (lp,mode="PDF")"LP"
+print (lp)"HELLO"
+close (lp)
+
+a=msgbox("done!")
+
+release

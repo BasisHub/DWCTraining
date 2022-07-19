@@ -1,0 +1,38 @@
+sysgui! = BBjAPI().openSysGui("X0")
+window! = sysgui!.addWindow(100,100,450,450,"Select one or more files...",$00090003$)
+window!.setCallback(window!.ON_CLOSE,"eoj")
+
+chooser! = window!.addFileChooser(101,25,25,400,400,"",$0006$)
+chooser!.setMultiSelectionEnabled(1)
+chooser!.setCallback(BBjAPI.ON_FILECHOOSER_APPROVE,"onFileChooser")
+
+vector! = bbjapi().makeVector()
+vector!.add("*.gif")
+vector!.add("*.jpg")
+vector!.add("*.png")
+vector!.add("*.bmp")
+vector!.add("*.ico")
+chooser!.addFileFilter("Image Files", vector!)
+chooser!.addFileFilter("Text Files", "*.txt")
+chooser!.setActiveFileFilter("Text Files")
+
+process_events
+
+eoj:
+  release
+  
+onFileChooser:
+  
+  declare auto BBjFileChooserApproveEvent ev!
+  ev!=BBjAPI().getLastEvent()
+  
+  rem upload all files to the server
+  it! = ev!.getSelectedFiles().iterator()
+  while it!.hasNext()
+    cf$ = it!.next()
+    f$=BBjAPI().getThinClient().getClientFileSystem().getClientFile(cf$).copyFromClient()
+    a=msgbox(f$,0,"File "+cf$+" uploaded to Server")
+  wend
+  
+return
+  

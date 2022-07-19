@@ -1,0 +1,17 @@
+rem This sample shows how a file is downloaded using BBjClientFilesystem
+
+wnd! = BBjAPI().openSysGui("X0").addWindow(10,10,400,400,"Download Sample")
+btn! = wnd!.addButton(100,10,10,300,30,"Download BBj.properties")
+btn!.setCallback(BBjAPI.ON_BUTTON_PUSH,"download")
+wnd!.setCallback(BBjAPI.ON_CLOSE,"byebye")
+
+process_events
+
+byebye:
+    bye
+
+download:
+    f$=BBjAPI().getFileSystem().resolvePath("../cfg/BBj.properties")
+    BBjAPI().getThinClient().getClientFileSystem().getClientFile("BBj.properties.txt").copyToClient(f$)
+return
+    
