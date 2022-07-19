@@ -1,0 +1,103 @@
+rem /**
+rem  * Exercise-ConvertToCssLayoutComplete-Grid.bbj
+rem  *
+rem  * This is the completed version of the Exercise-ConvertToCssLayout.bbj program
+rem  * that uses CSS Grid for a responsive layout.
+rem  */
+
+
+rem If the app is running in BUI, switch it automatically to run in the DWC client instead
+if info(3,6)="5" then
+    bui! = BBjAPI().getBuiManager()
+    url! = bui!.getUrl().replaceAll("apps", "webapp")
+    action! = bui!.urlAction(url!)
+    bui!.setEndAction(action!)
+    release
+endif
+
+
+rem Create the main window
+window! = BBjAPI().openSysGui("X0").addWindow("BBj DWC CSS Layout Samples", $00180093$)
+json! = new JsonObject()
+json!.addProperty("width", "100%")
+json!.addProperty("height", "100%")
+json!.addProperty("box-sizing", "border-box")
+json!.addProperty("display", "grid")
+json!.addProperty("grid-template-columns", "auto 1fr")
+json!.addProperty("align-items", "center")
+json!.addProperty("gap", "var(--bbj-space)")
+json!.addProperty("padding", "1em")
+window!.setPanelStyle("@element", json!.toString())
+window!.setCallback(window!.ON_CLOSE, "onExit")
+
+
+rem Build the Contact Form
+lbl! = window!.addStaticText("* First Name:", $8000$)
+editFirstName! = window!.addEditBox(""); editFirstName!.setPlaceholder("First name")
+lbl! = window!.addStaticText("* Last Name:", $8000$)
+editLastName! = window!.addEditBox(""); editLastName!.setPlaceholder("Last name")
+lbl! = window!.addStaticText("Company:", $8000$)
+editCompany! = window!.addEditBox(""); editCompany!.setPlaceholder("Company")
+lbl! = window!.addStaticText("Email:", $8000$)
+editEmail! = window!.addEditBox(""); editEmail!.setPlaceholder("Email")
+lbl! = window!.addStaticText("Country:", $8000$)
+editCountry! = window!.addEditBox("USA"); editCountry!.setPlaceholder("Country")
+lbl! = window!.addStaticText("City:", $8000$)
+editCity! = window!.addEditBox("Albuquerque"); editCity!.setPlaceholder("City")
+lbl! = window!.addStaticText("State:", $8000$)
+editState! = window!.addEditBox("New Mexico"); editState!.setPlaceholder("State")
+lbl! = window!.addStaticText("Zip Code:", $8000$)
+editZip! = window!.addEditBox("87109"); editZip!.setPlaceholder("Zip Code")
+
+btnSubmit! = window!.addButton("Submit")
+btnSubmit!.setAttribute("theme", "outlined-primary")
+btnSubmit!.setAttribute("expanse", "xl")
+btnSubmit!.setStyle("grid-column", "1 / 3")
+btnSubmit!.setStyle("margin-top", "1em")
+btnSubmit!.setCallback(BBjButton.ON_FORM_VALIDATION, "OnFormValidation")
+
+window!.setVisible(1)
+process_events
+
+
+rem ================================================================================================
+rem Subroutines
+rem ================================================================================================
+
+rem Handle the user exiting the app
+onExit:
+release
+
+
+rem Handle the form validation
+OnFormValidation:
+    e! = BBjAPI().getSysGui().getLastEvent()
+    firstName! = e!.getText(editFirstName!)
+    lastName! = e!.getText(editLastName!)
+    if (len(firstName!) AND len(lastName!)) then
+        e!.accept(1)
+        temp = msgbox("You filled in the form successfully!", BBjSysGui.MSGBOX_ICON_INFORMATION, "Form Submitted Successfully", mode="theme=success")
+    else
+        e!.accept(0)
+        temp = msgbox("You didn't fill in your first and last names, which are required", BBjSysGui.MSGBOX_ICON_STOP, "Invalid Input", mode="theme=danger")
+    endif
+return
+
+
+declare auto BBjTopLevelWindow window!
+declare auto BBjStaticText lbl!
+declare auto BBjEditBox editFirstName!
+declare auto BBjEditBox editLastName!
+declare auto BBjEditBox editCompany!
+declare auto BBjEditBox editEmail!
+declare auto BBjEditBox editCountry!
+declare auto BBjEditBox editCity!
+declare auto BBjEditBox editState!
+declare auto BBjEditBox editZip!
+declare auto BBjButton btnSubmit!
+declare auto JsonObject json!
+declare auto BBjFormValidationEvent e!
+
+rem Use statements
+use com.google.gson.JsonObject
+use java.util.HashMap
