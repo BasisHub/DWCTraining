@@ -1,0 +1,117 @@
+rem /**
+rem  * Exercise-SearchBBjTree.bbj
+rem  *
+rem  * This exercise for Chapter 4 - Extended Attributes consists of a window that
+rem  * contains a tree control and an exit button.  The window uses a CSS Grid layout
+rem  * with a single column and two rows.  Row 1 = the Tree Control, Row 2 = the Exit Button.
+rem  *
+rem  * The program populates the tree control with all the artists and albums in the
+rem  * CDStore database's CDInventory table.  This ends up creating a tree with a lot
+rem  * of nodes, making the tree very tall.
+rem  *
+rem  * Exercise Goals:
+rem  *  1) Prevent the tree control from being too tall for the browser.  To accomplish
+rem  *     this goal, you'll want to set the CSS "max-height" property to a pixel value
+rem  *     like "500px" or another length, like "75vh" which means 75% of the viewport
+rem  *     height.
+rem  *
+rem  * 2) After limiting the tree's display height, we want the user to be able to
+rem  *    scroll to see the rest of the tree.  To do this, you'll want to set the
+rem  *    CSS "overflow" or "overflow-y" property to "auto" or "scroll".
+rem  *
+rem  * 3) We want to customize the BBjTree by adding in a search mechanism.  This can
+rem  *    be done by setting the "search-input" attribute to "true" as covered in the
+rem  *    documentation: https://basishub.github.io/basis-next/#/dwc/bbj-tree
+rem  *
+rem  * 4) We also want to change the leaf node icons on the tree to compact discs.  This
+rem  *    can be done by setting the "icon-leaf" attribute to an icon, such as the
+rem  *    disc icon in the tabler pool, e.g. "tabler:disc".
+rem  *    documentation: https://basishub.github.io/basis-next/#/dwc/bbj-tree
+rem  *
+rem  */
+
+
+rem If the app is running in BUI, switch it automatically to run in the DWC client instead
+if info(3,6)="5" then
+    bui! = BBjAPI().getBuiManager()
+    url! = bui!.getUrl().replaceAll("apps", "webapp")
+    action! = bui!.urlAction(url!)
+    bui!.setEndAction(action!)
+    release
+endif
+
+
+rem Create the main window with a CSS Grid layout.
+window! = BBjAPI().openSysGui("X0").addWindow("BBj DWC Exercise", $00180093$)
+json! = new JsonObject()
+json!.addProperty("width", "100%")
+json!.addProperty("height", "100%")
+json!.addProperty("padding", "1em")
+json!.addProperty("box-sizing", "border-box")
+json!.addProperty("display", "grid")
+json!.addProperty("grid-template-rows", "auto 1fr")
+json!.addProperty("align-items", "center")
+json!.addProperty("gap", "var(--bbj-space)")
+json!.addProperty("padding", "1em")
+window!.setPanelStyle("@element", json!.toString())
+window!.setCallback(window!.ON_CLOSE, "onExit")
+
+
+rem Add the BBjTree and fill it with data from the CD Store
+tree! = window!.addTree()
+root = 0
+artistCount = 0
+titleCount = 999
+tree!.setRoot(root, "Root")
+chan = sqlunt()
+sqlopen(chan)"CDStore"
+sql$ = "select title, artist from CDInventory order by artist, title"
+sqlprep(chan)sql$
+dim t$:sqltmpl(chan)
+sqlexec(chan)
+while 1
+    t$ = sqlfetch(chan,end=*BREAK)
+    artist$ = t.artist$
+    title$ = t.title$
+    titleCount = titleCount + 1
+    if (artist$ <> lastArtist$) then
+        artistCount = artistCount + 1
+        lastArtist$ = artist$
+        tree!.addExpandableNode(artistCount, root, artist$)
+        tree!.addNode(titleCount, artistCount, title$)
+    else
+        tree!.addNode(titleCount, artistCount, title$)
+    endif
+wend
+sqlclose(chan)
+
+
+rem Enter your code below to solve all four goals for the exercise
+
+
+btnSubmit! = window!.addButton("Exit")
+btnSubmit!.setAttribute("theme", "primary")
+btnSubmit!.setAttribute("expanse", "xl")
+btnSubmit!.setStyle("margin-top", "1em")
+btnSubmit!.setCallback(BBjButton.ON_FORM_VALIDATION, "OnExit")
+
+window!.setVisible(1)
+process_events
+
+
+rem ================================================================================================
+rem Subroutines
+rem ================================================================================================
+
+rem Handle the user exiting the app
+onExit:
+release
+
+
+declare auto BBjTopLevelWindow window!
+declare auto BBjTree tree!
+declare auto BBjButton btnSubmit!
+declare auto JsonObject json!
+
+rem Use statements
+use com.google.gson.JsonObject

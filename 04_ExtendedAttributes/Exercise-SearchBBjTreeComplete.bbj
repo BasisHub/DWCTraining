@@ -1,0 +1,95 @@
+rem /**
+rem  * Exercise-SearchBBjTreeComplete.bbj
+rem  *
+rem  * This is the completed version of the Exercise-SearchBBjTree.bbj exercise.
+rem  */
+
+
+rem If the app is running in BUI, switch it automatically to run in the DWC client instead
+if info(3,6)="5" then
+    bui! = BBjAPI().getBuiManager()
+    url! = bui!.getUrl().replaceAll("apps", "webapp")
+    action! = bui!.urlAction(url!)
+    bui!.setEndAction(action!)
+    release
+endif
+
+
+rem Create the main window with a CSS Grid layout.
+window! = BBjAPI().openSysGui("X0").addWindow("BBj DWC Exercise", $00180093$)
+json! = new JsonObject()
+json!.addProperty("width", "100%")
+json!.addProperty("height", "100%")
+json!.addProperty("padding", "1em")
+json!.addProperty("box-sizing", "border-box")
+json!.addProperty("display", "grid")
+json!.addProperty("grid-template-rows", "auto 1fr")
+json!.addProperty("align-items", "center")
+json!.addProperty("gap", "var(--bbj-space)")
+json!.addProperty("padding", "1em")
+window!.setPanelStyle("@element", json!.toString())
+window!.setCallback(window!.ON_CLOSE, "onExit")
+
+
+rem Add the BBjTree and fill it with data from the CD Store
+tree! = window!.addTree()
+root = 0
+artistCount = 0
+titleCount = 999
+tree!.setRoot(root, "Root")
+chan = sqlunt()
+sqlopen(chan)"CDStore"
+sql$ = "select title, artist from CDInventory order by artist, title"
+sqlprep(chan)sql$
+dim t$:sqltmpl(chan)
+sqlexec(chan)
+while 1
+    t$ = sqlfetch(chan,end=*BREAK)
+    artist$ = t.artist$
+    title$ = t.title$
+    titleCount = titleCount + 1
+    if (artist$ <> lastArtist$) then
+        artistCount = artistCount + 1
+        lastArtist$ = artist$
+        tree!.addExpandableNode(artistCount, root, artist$)
+        tree!.addNode(titleCount, artistCount, title$)
+    else
+        tree!.addNode(titleCount, artistCount, title$)
+    endif
+wend
+sqlclose(chan)
+
+
+rem These lines of code solve all four goals for the exercise
+tree!.setStyle("max-height", "75vh")
+tree!.setStyle("overflow", "auto")
+tree!.setAttribute("icon-leaf", "tabler:disc")
+tree!.setAttribute("search-input", "true")
+
+
+btnSubmit! = window!.addButton("Exit")
+btnSubmit!.setAttribute("theme", "primary")
+btnSubmit!.setAttribute("expanse", "xl")
+btnSubmit!.setStyle("margin-top", "1em")
+btnSubmit!.setCallback(BBjButton.ON_FORM_VALIDATION, "OnExit")
+
+window!.setVisible(1)
+process_events
+
+
+rem ================================================================================================
+rem Subroutines
+rem ================================================================================================
+
+rem Handle the user exiting the app
+onExit:
+release
+
+
+declare auto BBjTopLevelWindow window!
+declare auto BBjTree tree!
+declare auto BBjButton btnSubmit!
+declare auto JsonObject json!
+
+rem Use statements
+use com.google.gson.JsonObject
