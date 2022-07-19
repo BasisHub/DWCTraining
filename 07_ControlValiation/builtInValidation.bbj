@@ -43,7 +43,6 @@ window! = BBjAPI().openSysGui("X0").addWindow("BBj DWC CSS Layout Samples", $001
 json! = new JsonObject()
 json!.addProperty("width", "100%")
 json!.addProperty("height", "100%")
-json!.addProperty("padding", "1em")
 json!.addProperty("box-sizing", "border-box")
 json!.addProperty("display", "grid")
 json!.addProperty("grid-template-columns", "auto 1fr")
