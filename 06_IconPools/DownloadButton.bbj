@@ -1,6 +1,8 @@
 rem /**
 rem  * DownloadButton.bbj
-rem  * @author ndecker
+rem  *
+rem  * This program demonstrates adding SVG icons to a BBjButton control using
+rem  * the DWC's built-in icon pools.
 rem  *
 rem  */
 
@@ -16,12 +18,12 @@ if (info(3, 6) = "5") then
 endif
 
 rem Create the window and use a grid layout
-wnd! = BBjAPI().openSysGui("X0").addWindow("DWC Icon Pools", $00100083$)
-wnd!.setPanelStyle("display","inline-grid")
-wnd!.setPanelStyle("grid-template-columns","1fr")
-wnd!.setPanelStyle("gap","var(--bbj-space)")
-wnd!.setPanelStyle("padding","var(--bbj-space-xl)")
-wnd!.setCallback(BBjAPI.ON_CLOSE,"byebye")
+window! = BBjAPI().openSysGui("X0").addWindow("DWC Icon Pools", $00100093$)
+window!.setPanelStyle("display", "inline-grid")
+window!.setPanelStyle("grid-template-columns", "1fr")
+window!.setPanelStyle("gap", "var(--bbj-space)")
+window!.setPanelStyle("padding", "var(--bbj-space-xl)")
+window!.setCallback(BBjAPI.ON_CLOSE, "onExit")
 
 
 rem Define the HTML title for the buttons that incorporate the download icons
@@ -30,9 +32,9 @@ btnIconTabler$ = "<html><bbj-icon pool='tabler' name='download'></bbj-icon>"
 btnIconFontAwesome$ = "<html><bbj-icon pool='fa' name='fas-download'></bbj-icon>"
 
 rem Now create the buttons using the HTML for the title
-btnFeather! = wnd!.addButton(btnIconFeather$ + "Feather's Download Icon")
-btnTabler! = wnd!.addButton(btnIconTabler$ + "Tabler's Download Icon")
-btnFontAwesome! =  wnd!.addButton(btnIconFontAwesome$ + "Font Awesome's Download Icon")
+btnFeather! = window!.addButton(btnIconFeather$ + "Feather's Download Icon")
+btnTabler! = window!.addButton(btnIconTabler$ + "Tabler's Download Icon")
+btnFontAwesome! =  window!.addButton(btnIconFontAwesome$ + "Font Awesome's Download Icon")
 
 
 
@@ -42,9 +44,9 @@ btnIconTabler$ = "<html><bbj-icon pool='tabler' name='cloud-download' style='wid
 btnIconFontAwesome$ = "<html><bbj-icon pool='fa' name='fas-cloud-download-alt' style='width: 1em; color: var(--bbj-color-danger)'></bbj-icon>"
 
 rem Now create the buttons using the HTML for the title
-btnFeather! = wnd!.addButton(btnIconFeather$ + "Feather's Cloud Download Icon")
-btnTabler! = wnd!.addButton(btnIconTabler$ + "Tabler's Cloud Download Icon")
-btnFontAwesome! =  wnd!.addButton(btnIconFontAwesome$ + "Font Awesome's Cloud Download Icon")
+btnFeather! = window!.addButton(btnIconFeather$ + "Feather's Cloud Download Icon")
+btnTabler! = window!.addButton(btnIconTabler$ + "Tabler's Cloud Download Icon")
+btnFontAwesome! =  window!.addButton(btnIconFontAwesome$ + "Font Awesome's Cloud Download Icon")
 
 
 rem Add a custom icon pool referencing the ionicons library from a CDN
@@ -59,12 +61,18 @@ btnIconIon1$ = "<html><bbj-icon pool='ionicons' name='cloud-download-outline'></
 btnIconIon2$ = "<html><bbj-icon pool='ionicons' name='cloud-download'></bbj-icon>"
 
 rem Now create the buttons using the HTML for the title
-btnIonIcon1! = wnd!.addButton(btnIconIon1$ + "IonIcons's Cloud Download Icon")
-btnIonIcon2! = wnd!.addButton(btnIconIon2$ + "IonIcons's Cloud Download Icon Filled")
+btnIonIcon1! = window!.addButton(btnIconIon1$ + "IonIcons's Cloud Download Icon")
+btnIonIcon2! = window!.addButton(btnIconIon2$ + "IonIcons's Cloud Download Icon Filled")
 
 
-
+window!.setVisible(1)
 process_events
 
-byebye: bye
 
+rem ================================================================================================
+rem Subroutines
+rem ================================================================================================
+
+rem Handle the user exiting the app
+onExit:
+release
