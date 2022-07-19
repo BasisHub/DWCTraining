@@ -1,0 +1,58 @@
+rem /**
+rem  * Exercise-IconPools.bbj
+rem  *
+rem  * This exercise consists of a BBjStaticText control that contains
+rem  * the text "I like the following sports: ".  In this exercise, you
+rem  * will add icons to the text control for one or more sports using
+rem  * the DWC's icon pool capability.
+rem  *
+rem  * Exercise Goals:
+rem  *  1) Add one or more icons to the static text control.  For a 
+rem  *     refresher on the syntax, look at the DownloadButton.bbj 
+rem  *     program in this directory.
+rem  * 
+rem  *  2) Try setting an expanse and theme for the icons.
+rem  */
+
+
+rem If the app is running in BUI, switch it automatically to run in the DWC client instead
+rem ================================================================================
+if (info(3, 6) = "5") then
+    bui! = BBjAPI().getBuiManager()
+    url! = bui!.getUrl().replaceAll("apps", "webapp")
+    action! = bui!.urlAction(url!)
+    bui!.setEndAction(action!)
+    release
+endif
+
+rem Create the window and use a grid layout
+window! = BBjAPI().openSysGui("X0").addWindow("DWC Icon Pools", $00100093$)
+window!.setPanelStyle("display", "inline-grid")
+window!.setPanelStyle("grid-template-columns", "1fr")
+window!.setPanelStyle("gap", "var(--bbj-space)")
+window!.setPanelStyle("padding", "var(--bbj-space-xl)")
+window!.setCallback(BBjAPI.ON_CLOSE, "onExit")
+
+
+rem Change the line below to add one or more sports icons
+label! = window!.addStaticText("<html>I like the following sports: ")
+
+
+btnSubmit! = window!.addButton("Exit")
+btnSubmit!.setAttribute("theme", "primary")
+btnSubmit!.setAttribute("expanse", "xl")
+btnSubmit!.setStyle("margin-top", "1em")
+btnSubmit!.setCallback(BBjButton.ON_FORM_VALIDATION, "OnExit")
+
+
+window!.setVisible(1)
+process_events
+
+
+rem ================================================================================================
+rem Subroutines
+rem ================================================================================================
+
+rem Handle the user exiting the app
+onExit:
+release

@@ -1,0 +1,51 @@
+rem /**
+rem  * Exercise-IconPoolsComplete.bbj
+rem  *
+rem  * This is the completed version of the Exercise-IconPools.bbj exercise program.
+rem  *
+rem  */
+
+
+rem If the app is running in BUI, switch it automatically to run in the DWC client instead
+rem ================================================================================
+if (info(3, 6) = "5") then
+    bui! = BBjAPI().getBuiManager()
+    url! = bui!.getUrl().replaceAll("apps", "webapp")
+    action! = bui!.urlAction(url!)
+    bui!.setEndAction(action!)
+    release
+endif
+
+rem Create the window and use a grid layout
+window! = BBjAPI().openSysGui("X0").addWindow("DWC Icon Pools", $00100093$)
+window!.setPanelStyle("display", "inline-grid")
+window!.setPanelStyle("grid-template-columns", "1fr")
+window!.setPanelStyle("gap", "var(--bbj-space)")
+window!.setPanelStyle("padding", "var(--bbj-space-xl)")
+window!.setCallback(BBjAPI.ON_CLOSE, "onExit")
+
+
+rem Change the line below to add one or more sports icons
+label! = window!.addStaticText("<html>I like the following sports: "+
+:                              "<bbj-icon pool='tabler' name='ball-tennis' expanse='s' theme='primary'></bbj-icon>"+
+:                              " and <bbj-icon pool='fa' name='futbol' expanse='xs' theme='primary'></bbj-icon>, how about you?")
+
+
+btnSubmit! = window!.addButton("Exit")
+btnSubmit!.setAttribute("theme", "primary")
+btnSubmit!.setAttribute("expanse", "xl")
+btnSubmit!.setStyle("margin-top", "1em")
+btnSubmit!.setCallback(BBjButton.ON_FORM_VALIDATION, "OnExit")
+
+
+window!.setVisible(1)
+process_events
+
+
+rem ================================================================================================
+rem Subroutines
+rem ================================================================================================
+
+rem Handle the user exiting the app
+onExit:
+release
