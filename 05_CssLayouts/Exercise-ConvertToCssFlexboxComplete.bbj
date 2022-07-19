@@ -1,0 +1,52 @@
+rem /**
+rem  * Exercise-ConvertToCssFlexboxComplete.bbj
+rem  *
+rem  * This is the completed version of the Exercise-ConvertToCssFlexbox.bbj exercise program.
+rem  */
+
+
+rem If the app is running in BUI, switch it automatically to run in the DWC client instead
+rem ================================================================================
+if (info(3, 6) = "5") then
+    bui! = BBjAPI().getBuiManager()
+    url! = bui!.getUrl().replaceAll("apps", "webapp")
+    action! = bui!.urlAction(url!)
+    bui!.setEndAction(action!)
+    release
+endif
+
+
+sysgui = unt
+open (sysgui)"X0"
+sysgui! = bbjapi().getSysGui()
+window! = sysgui!.addWindow("CSS Flexbox and Label Attributes",$00190083$)
+window!.setCallback(window!.ON_CLOSE, "onClose")
+json! = new JsonObject()
+json!.addProperty("width", "100%")
+json!.addProperty("height", "100%")
+json!.addProperty("box-sizing", "border-box")
+json!.addProperty("display", "flex")
+json!.addProperty("flex-direction", "column")
+json!.addProperty("gap", "var(--bbj-space)")
+json!.addProperty("padding", "1em")
+window!.setPanelStyle("@element", json!.toString())
+
+
+rem Add the controls to the window
+myName! = window!.addEditBox("Joe Blow").setAttribute("label", "Name:")
+myCompany! = window!.addEditBox("BASIS International Ltd.").setAttribute("label", "Company:")
+myEmail! = window!.addEditBox("joeBlow@basis.com").setAttribute("label", "Email:")
+
+
+process_events
+
+onClose:
+release
+
+declare auto BBjSysGui sysgui!
+declare auto BBjTopLevelWindow window!
+declare auto BBjEditBox myName!
+declare auto BBjEditBox myCompany!
+declare auto BBjEditBox myEmail!
+
+use com.google.gson.JsonObject

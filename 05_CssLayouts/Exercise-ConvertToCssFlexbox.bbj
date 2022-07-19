@@ -1,0 +1,63 @@
+rem /**
+rem  * Exercise-ConvertToCssFlexbox.bbj
+rem  *
+rem  * This exercise displays a short form in a window with flow layout.
+rem  *
+rem  * Exercise Goals:
+rem  *  1) Augment the json! variable to set the window's CSS display
+rem  *     property to "flex" to switch to a flexbox layout.
+rem  *
+rem  *  2) Augment the json! variable to set the window's CSS flex-direction
+rem  *     property to "column" so that the controls are laid out vertically.
+rem  *
+rem  *  3) Augment the json! variable to add padding around the window and a gap
+rem  *    between the controls.
+rem  *
+rem  *  4) Note that we used the succinct versions of the BBjWindow::addEditBox()
+rem  *     methods that just take the control's contents, and we chained the
+rem  *     BBjControl::setAttribute() method resulting in an edit box with a
+rem  *     label in one line of code.
+rem  */
+
+
+rem If the app is running in BUI, switch it automatically to run in the DWC client instead
+rem ================================================================================
+if (info(3, 6) = "5") then
+    bui! = BBjAPI().getBuiManager()
+    url! = bui!.getUrl().replaceAll("apps", "webapp")
+    action! = bui!.urlAction(url!)
+    bui!.setEndAction(action!)
+    release
+endif
+
+
+sysgui = unt
+open (sysgui)"X0"
+sysgui! = bbjapi().getSysGui()
+window! = sysgui!.addWindow("CSS Flexbox and Label Attributes",$00190083$)
+window!.setCallback(window!.ON_CLOSE, "onClose")
+json! = new JsonObject()
+json!.addProperty("width", "100%")
+json!.addProperty("height", "100%")
+json!.addProperty("box-sizing", "border-box")
+window!.setPanelStyle("@element", json!.toString())
+
+
+rem Add the controls to the window
+myName! = window!.addEditBox("Joe Blow").setAttribute("label", "Name:")
+myCompany! = window!.addEditBox("BASIS International Ltd.").setAttribute("label", "Company:")
+myEmail! = window!.addEditBox("joeBlow@basis.com").setAttribute("label", "Email:")
+
+
+process_events
+
+onClose:
+release
+
+declare auto BBjSysGui sysgui!
+declare auto BBjTopLevelWindow window!
+declare auto BBjEditBox myName!
+declare auto BBjEditBox myCompany!
+declare auto BBjEditBox myEmail!
+
+use com.google.gson.JsonObject
