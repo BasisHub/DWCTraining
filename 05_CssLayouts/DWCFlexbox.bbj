@@ -38,6 +38,11 @@ sysgui = unt
 open (sysgui)"X0"
 sysgui! = bbjapi().getSysGui()
 window! = sysgui!.addWindow("DWC Flexbox Demo", $00180093$)
+json! = new JsonObject()
+json!.addProperty("min-height", "27em")
+json!.addProperty("min-width", "40em")
+window!.setStyle("@element", json!.toString())
+
 
 rem Set the app's theme to follow the client's operating system's light/dark mode
 window!.setAttribute("@app-theme-switcher", "dark=dark light=light")
@@ -48,14 +53,13 @@ json!.addProperty("box-sizing", "border-box")
 json!.addProperty("display", "grid")
 json!.addProperty("grid-template-rows", "minmax(8em, 1fr) auto")
 json!.addProperty("padding", "var(--bbj-space)")
-json!.addProperty("gap", "2em")
 json!.addProperty("height", "100%")
 window!.setPanelStyle("@element", json!.toString())
 
-rem Create the visualization area
+rem Create the preview area that lets us visualize the current layout parameters
 vectBoxControls! = BBjAPI().makeVector()
 sizePct! = str(100/(numVisibleBoxes):"##0.00%")
-winDemo! = window!.addChildWindow("Boxes", $00109800$, sysgui!.getAvailableContext())
+winDemo! = window!.addChildWindow("Flexbox Layout Preview", $00109000$, sysgui!.getAvailableContext())
 winDemo!.setStyle("display", "flex")
 winDemo!.setStyle("flex-wrap", wrap!)
 winDemo!.setStyle("flex-direction", direction!)
@@ -72,21 +76,34 @@ winDemo!.setStyle("background-image", "linear-gradient(to right, rgba(0, 0, 0, 0
 winDemo!.setStyle("background-image", "linear-gradient(90deg, hsl(var(--bbj-color-danger-h), var(--bbj-color-danger-s), 75%) 1px, transparent 1px)")
 winDemo!.setStyle("background-position", "-0.5px 0px")
 
+rem Before creating the boxes for the preview window, we start off by defining a base style that's defined
+rem as a JsonObject that we modify in the loop to change the box's colors based on the number of boxes visible
+boxJson! = new JsonObject()
+boxJson!.addProperty("font-size", "var(--bbj-font-size-m)")
+boxJson!.addProperty("font-family", "var(--bbj-font-family-mono)")
+boxJson!.addProperty("font-weight", "var(--bbj-font-weight-bold)")
+boxJson!.addProperty("padding", "10px 20px")
+boxJson!.addProperty("margin", "1px")
+
+rem The following centers the text inside the box
+boxJson!.addProperty("display", "flex")
+boxJson!.addProperty("justify-content", "center")
+boxJson!.addProperty("align-content", "center")
+boxJson!.addProperty("flex-direction", "column")
+boxJson!.addProperty("border-radius", "var(--bbj-border-radius)")
+
 rem Create the boxes and add them to a vector for later retrieval
 for i = 0 to numBoxes-1
     hue = int(360/numVisibleBoxes) * i
-    backColor! = "hsla(" + str(hue) + ", 50%, 75%, 0.5)"
-    borderColor! = "var(--bbj-color-primary-25)"
-    textColor! = "var(--bbj-color-black) !important"
-    box! = winDemo!.addStaticText("Box " + str(i+1))
-    box!.setStyle("background", backColor!)
-    box!.setStyle("border", "2px solid " + borderColor!)
-    box!.setStyle("color", borderColor!)
-    box!.setStyle("font-family", "monospace")
-    box!.setStyle("font-weight", "bold")
-    box!.setStyle("text-align", "center")
-    box!.setStyle("padding", "10px 20px")
-    box!.setStyle("margin", "2px")
+    backColor! =    "hsla(" + str(hue) + ", 50%, 75%, 0.35)"
+    borderColor! =  "hsl("  + str(hue) + ", 50%, 35%)"
+    textColor! =    "hsl("  + str(hue) + ", 50%, 25%)"
+
+    boxJson!.addProperty("background", backColor!)
+    boxJson!.addProperty("border", "2px solid " + borderColor!)
+    boxJson!.addProperty("color", textColor!)
+    box! = winDemo!.addStaticText("Box " + str(i+1), $4000$)
+    box!.setStyle("@element", boxJson!.toString())
     vectBoxControls!.addItem(box!)
     if (i >= numVisibleBoxes) then box!.setVisible(0)
 next
@@ -95,6 +112,7 @@ next
 rem Create the window that contains the controls
 winOptions! = window!.addChildWindow("Controls", $00109800$, sysgui!.getAvailableContext())
 json! = new JsonObject()
+json!.addProperty("margin-top", "1.5em")
 json!.addProperty("display", "flex")
 json!.addProperty("flex-direction", "row")
 json!.addProperty("flex-wrap", "wrap")
@@ -104,7 +122,7 @@ json!.addProperty("overflow", "auto")
 winOptions!.setPanelStyle("@element", json!.toString())
 
 rem Create the Options Group with the InputNSpinner to control the number of visible boxes
-winConfig! = winOptions!.addChildWindow("Config", $00109000$, sysgui!.getAvailableContext())
+winConfig! = winOptions!.addChildWindow("Configuration", $00109000$, sysgui!.getAvailableContext())
 winConfig!.setStyle("display", "flex")
 winConfig!.setStyle("flex-direction", "column")
 winConfig!.setStyle("align-items", "stretch")
@@ -116,45 +134,41 @@ lbl! = winConfig!.addStaticText("Num. Boxes")
 spinBoxes! = winConfig!.addInputNSpinner($$,"#0",3,15)
 spinBoxes!.setValue(numVisibleBoxes)
 spinBoxes!.setAttribute("expanse", "m")
-spinBoxes!.setStyle("max-width", "7em")
+spinBoxes!.setStyle("max-width", "8em")
 btnShowCss! = winConfig!.addButton("Show CSS")
-btnShowCss!.setAttribute("expanse", "m")
+btnShowCss!.setAttribute("expanse", "l")
+btnShowCss!.setAttribute("theme", "success")
 
 rem Wrap Group
 winWrap! = winOptions!.addChildWindow("Wrap", $00109000$, sysgui!.getAvailableContext())
-winWrap!.setStyle("@element", winStyle!.toString())
+winWrap!.setStyle("@element", childWinStyle!.toString())
 listWrap! = winWrap!.addListBox(java.lang.String.join($0a$, java.util.Arrays.asList(vectWraps!)))
-listWrap!.setStyle("padding", "2px")
 listWrap!.selectIndex(vectWraps!.indexOf(wrap!))
 
 rem Direction Group
 winDirection! = winOptions!.addChildWindow("Direction", $00109000$, sysgui!.getAvailableContext())
-winDirection!.setStyle("@element", winStyle!.toString())
+winDirection!.setStyle("@element", childWinStyle!.toString())
 listDirection! = winDirection!.addListBox(java.lang.String.join($0a$, java.util.Arrays.asList(vectDirections!)))
-listDirection!.setStyle("padding", "2px")
 listDirection!.selectIndex(vectDirections!.indexOf(direction!))
 
 rem Justification Group
 if (direction! = "row") then title$ = "Justification (H)" else title$ = "Justification (V)"
 winJustification! = winOptions!.addChildWindow(title$, $00109000$, sysgui!.getAvailableContext())
-winJustification!.setStyle("@element", winStyle!.toString())
+winJustification!.setStyle("@element", childWinStyle!.toString())
 listJustification! = winJustification!.addListBox(java.lang.String.join($0a$, java.util.Arrays.asList(vectJustifications!)))
-listJustification!.setStyle("padding", "2px")
 listJustification!.selectIndex(vectJustifications!.indexOf(justification!))
 
 rem Alignment Group
 if (direction! = "row") then title$ = "Alignment (V)" else title$ = "Alignment (H)"
 winAlignments! = winOptions!.addChildWindow(title$, $00109000$, sysgui!.getAvailableContext())
-winAlignments!.setStyle("@element", winStyle!.toString())
+winAlignments!.setStyle("@element", childWinStyle!.toString())
 listAligment! = winAlignments!.addListBox(java.lang.String.join($0a$, java.util.Arrays.asList(vectAlignments!)))
-listAligment!.setStyle("padding", "2px")
 listAligment!.selectIndex(vectAlignments!.indexOf(alignment!))
 
 rem Item Flex-Grow Group
 winGrow! = winOptions!.addChildWindow("Item flex-grow", $00109000$, sysgui!.getAvailableContext())
-winGrow!.setStyle("@element", winStyle!.toString())
+winGrow!.setStyle("@element", childWinStyle!.toString())
 listGrow! = winGrow!.addListBox(java.lang.String.join($0a$, java.util.Arrays.asList(vectGrows!)))
-listGrow!.setStyle("padding", "2px")
 listGrow!.selectIndex(vectGrows!.indexOf(grow!))
 
 
@@ -268,16 +282,19 @@ init:
     vectGrows!.addItem("decreasing")
     vectGrows!.addItem("pyramid")
 
-    rem Create a style to be applied later to the container windows (Wrap, Direction, Justification, Alignment, Item flex-grow)
-    winStyle! = new JsonObject()
-    winStyle!.addProperty("display", "flex")
-    winStyle!.addProperty("flex-direction", "column")
-    winStyle!.addProperty("flex-grow", "1")
-    winStyle!.addProperty("align-items", "stretch")
-    winStyle!.addProperty("padding", "var(--bbj-space)")
-    winStyle!.addProperty("gap", "var(--bbj-space, 0.5em)")
-    winStyle!.addProperty("border", "var(--bbj-border-width) var(--bbj-border-style) var(--bbj-border-color-primary)")
-    winStyle!.addProperty("border-radius", "var(--bbj-border-radius)")
+    rem Create a style to be applied later to the container windows (Configuration, Wrap, Direction, Justification, Alignment, Item flex-grow)
+    childWinStyle! = new JsonObject()
+    childWinStyle!.addProperty("display", "flex")
+    childWinStyle!.addProperty("flex-direction", "column")
+    childWinStyle!.addProperty("flex-grow", "1")
+    childWinStyle!.addProperty("align-items", "stretch")
+    childWinStyle!.addProperty("padding", "var(--bbj-space)")
+    childWinStyle!.addProperty("gap", "var(--bbj-space, 0.5em)")
+    childWinStyle!.addProperty("border", "var(--bbj-border-width) var(--bbj-border-style) var(--bbj-border-color-primary)")
+    childWinStyle!.addProperty("border-radius", "var(--bbj-border-radius)")
+    fieldsetStyle! = new JsonObject()
+    fieldsetStyle!.addProperty("font-weight", "var(--bbj-font-weight-semibold)")
+    childWinStyle!.addProperty("legend", fieldsetStyle!.toString())
 return
 
 
@@ -289,7 +306,7 @@ onNumBoxesSpin:
     rem Change the box colors so that they are always spread across the hue spectrum
     for i = 0 to numBoxes-1
         hue = int(360/numVisibleBoxes) * i
-        backColor! =    "hsla(" + str(hue) + ", 50%, 75%, 0.25)"
+        backColor! =    "hsla(" + str(hue) + ", 50%, 75%, 0.35)"
         borderColor! =  "hsl("  + str(hue) + ", 50%, 35%)"
         textColor! =    "hsl("  + str(hue) + ", 50%, 25%)"
 
@@ -390,14 +407,38 @@ onShowCss:
     rem Split the original styles into multiple lines
     styles! = styles!.replaceAll(";(\s*)", ";<br>")
 
-    msg! = "<html>Listed below are the layout definitions for the window that contains the multi-colored boxes."
+    msg! = "<html><p>Listed below are the current layout definitions for the '<b>Flexbox Layout Preview</b>' <a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjchildwindow/bbjchildwindow.htm' target='_blank'>BBjChildWindow</a> that contains the multi-colored boxes. "
+    msg! = msg! + "This information was retrieved via the following line of code:</p>"
+    msg! = msg! + "<pre><code>styles! = winDemo!.getAttribute(""style"")</code></pre>"
+
+    msg! = msg! + "<p>Note that if you're planning on using these definitions on a <a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjtoplevelwindow/bbjtoplevelwindow.htm' target='_blank'>BBjTopLevelWindow</a>, "
+    msg! = msg! + "then you'll want to change the last line of BBj code to set the <i>panel</i> style, as in:</p> "
+    msg! = msg! + "<pre><code>myWindow!.<span style='background: var(--bbj-color-warning-50); color: var(--bbj-color-black);'><a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjwindow/BBjWindow_setPanelStyle.htm' target='_blank'>setPanelStyle</a></span>(""@element"", json!.toString())</code></pre>"
+
     if (grow! = "grow equally") then
-        msg! = msg! + "<p>Note that you'll also have to set the CSS&nbsp;<mark><code>flex-grow: 1;</code></mark>&nbsp;style "
-        msg! = msg! + "on all the window's contained controls to match the current settings."
+        msg! = msg! + "<p>Note that you'll also have to set the CSS&nbsp;<span style='background: var(--bbj-color-warning-50); color: var(--bbj-color-black);'><code>flex-grow: 1;</code></span>&nbsp;style "
+        msg! = msg! + "on all the window's contained controls to match the current settings.</p>"
     endif
-    msg! = msg! + "<p><b>CSS Styles</b><pre>" + styles! + "</pre>"
-    msg! = msg! + "<p><br><b>BBj Code</b><pre>" + code! + "</pre></html>"
-    tmp = msgbox(msg!, BBjSysGui.MSGBOX_ICON_INFORMATION, "Layout Information", MODE="max-width=60ch,theme=primary")
+    msg! = msg! + "<p></p><br><h1>CSS Styles</h1><pre>" + styles! + "</pre>"
+    msg! = msg! + "<p></p><br><h1>BBj Code</h1><pre>" + code! + "</pre>"
+
+    rem We're going to modify the default display styles for pre and header elements while we're defining custom HTML
+    msg! = msg! + "<style>"
+    msg! = msg! + "pre {"
+    msg! = msg! + "  border: 1px solid var(--bbj-border-color-gray);"
+    msg! = msg! + "  border-radius: var(--bbj-border-radius-m);"
+    msg! = msg! + "  padding: var(--bbj-space);"
+    msg! = msg! + "  background: var(--bbj-color-gray-95);"
+    msg! = msg! + "  font-family: Consolas, var(--bbj-font-family-mono);"
+    msg! = msg! + "  font-size: var(--bbj-font-size-l);"
+    msg! = msg! + "  line-height: 140%;"
+    msg! = msg! + "  -webkit-font-smoothing: subpixel-antialiased;"
+    msg! = msg! + "  margin: 0.25em;"
+    msg! = msg! + "}"
+    msg! = msg! + "h1 {margin: 0 0;}"
+    msg! = msg! + "</style>"
+
+    tmp = msgbox(msg!, BBjSysGui.MSGBOX_ICON_INFORMATION, "Layout Information", MODE="max-width=800px,max-height=96vh,theme=primary")
 return
 
 
@@ -416,6 +457,7 @@ declare auto BBjListBox listWrap!
 declare auto BBjListBox listDirection!
 declare auto BBjListBox listJustification!
 declare auto BBjListBox listGrow!
+declare auto BBjListBox listAligment!
 declare auto BBjInputNSpinner spinBoxes!
 declare auto BBjVector vectWraps!
 declare auto BBjVector vectDirections!
@@ -425,7 +467,7 @@ declare auto BBjVector vectGrows!
 declare auto BBjVector vectBoxControls!
 
 declare auto JsonObject json!
-declare auto JsonObject winStyle!
+declare auto JsonObject childWinStyle!
 declare auto BBjString styles!
 declare auto BBjString code!
 declare auto BBjString codeString!
