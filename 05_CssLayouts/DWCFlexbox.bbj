@@ -338,11 +338,12 @@ onShowCss:
     rem Create the BBj code version
     bbjCodeGetStyle! = "cssCode! = winDemo!.getAttribute(""style"")"
     bbjCode! = "rem Set the window's layout using CSS Flexbox" + $0a$
+    bbjCode! = bbjCode! + "window!.setPanelStyle(""height"", ""100%"")" + $0a$
     codeString! = cssCode!.replaceAll(";(\s*)", $0a$)
     while codeString!.indexOf($0a$) > -1
         p1 = codeString!.indexOf(":")
         p2 = codeString!.indexOf($0a$)
-        bbjCode! = bbjCode! + "myWindow!.setPanelStyle(""" + codeString!.substring(0, p1) + """, """ + codeString!.substring(p1+1, p2).trim() + """)" + $0a$
+        bbjCode! = bbjCode! + "window!.setPanelStyle(""" + codeString!.substring(0, p1) + """, """ + codeString!.substring(p1+1, p2).trim() + """)" + $0a$
         codeString! = codeString!.substring(p2+1)
     wend
 
@@ -366,6 +367,8 @@ onShowCss:
     msg! = msg! + "<a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjtoplevelwindow/bbjtoplevelwindow.htm' target='_blank'>BBjTopLevelWindow</a>, "
     msg! = msg! + "then you'll want to use the <a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjwindow/BBjWindow_setPanelStyle.htm' target='_blank'>setPanelStyle()</a> method instead, "
     msg! = msg! + "as it's the immediate parent element in the DOM for the controls contained in the window.  "; rem For those cases, you would change the last line of BBj code shown below "
+
+    msg! = msg! + "<p>Note that you'll also have to set the $00100000$ flag when creating the window, as that causes the window to use dynamic flow layout, ignoring all absolute control sizes and positions.</p>"
 
     if (grow! = "grow equally") then
         msg! = msg! + "<p>Note that you'll also have to set the CSS&nbsp;<span style='background: var(--bbj-color-warning-50); color: var(--bbj-color-black);'><code>flex-grow: 1;</code></span>&nbsp;style "
