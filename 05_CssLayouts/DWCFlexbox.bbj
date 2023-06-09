@@ -8,7 +8,7 @@ rem  * layout of a number of colored boxes in a separate display area.
 rem  *
 rem  * Features:
 rem  *  - It uses CSS for layout, so there's no ON_RESIZE event to deal with and everything is always sized/located correctly
-rem  *  - It uses the "setTheme" DWC theme to automatically follow the host operating system's light/dark mode setting
+rem  *  - It uses the "system" DWC theme to automatically follow the host operating system's light/dark mode setting
 rem  *  - It uses the simplified API when adding controls by typically ommitting the ID, x, y, width, and height parameters to make the code more succinct
 rem  *  - It uses the Prism.js (https://prismjs.com/) library to add syntax highlighter to the BBj and CSS code samples
 rem  *  - It uses a Prism.js plugin to copy the code samples to the user's clipboard
