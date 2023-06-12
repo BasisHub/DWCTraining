@@ -9,7 +9,7 @@ rem  *
 rem  * Features:
 rem  *  - It uses CSS for layout, so there's no ON_RESIZE event to deal with and everything is always sized/located correctly
 rem  *  - It uses the "system" DWC theme to automatically follow the host operating system's light/dark mode setting
-rem  *  - It uses the simplified API when adding controls by typically ommitting the ID, x, y, width, and height parameters to make the code more succinct
+rem  *  - It uses the simplified API when adding controls by typically omitting the ID, x, y, width, and height parameters to make the code more succinct
 rem  *  - It uses the Prism.js (https://prismjs.com/) library to add syntax highlighter to the BBj and CSS code samples
 rem  *  - It uses a Prism.js plugin to copy the code samples to the user's clipboard
 rem  */
@@ -51,6 +51,7 @@ rem Create the preview area that lets us visualize the current layout parameters
 vectBoxControls! = BBjAPI().makeVector()
 sizePct! = str(100/(numVisibleBoxes):"##0.00%")
 winDemo! = window!.addChildWindow("Flexbox Layout Preview", $00109000$, sysgui!.getAvailableContext())
+winDemo!.addStyle("winDemo")
 winDemo!.setStyle("display", "flex")
 winDemo!.setStyle("flex-wrap", ""+wrap!+"")
 winDemo!.setStyle("flex-direction", ""+direction!+"")
@@ -89,7 +90,6 @@ winOptions!.addStyle("winOptions")
 
 rem Create the Options Group with the InputNSpinner to control the number of visible boxes
 winConfig! = winOptions!.addChildWindow("Configuration", $00109000$, sysgui!.getAvailableContext())
-winConfig!.addStyle("winConfig")
 lbl! = winConfig!.addStaticText("Num. Boxes")
 spinBoxes! = winConfig!.addInputNSpinner($$,"#0",3,15)
 spinBoxes!.setValue(numVisibleBoxes)
@@ -357,23 +357,27 @@ onShowCss:
     web!.injectScript(DemoUtils.getFileContents(dsk("")+dir("")+"prism.min.js",err=*NEXT), 0, "name=prism_js_bottom")
 
     rem Define the contents of the message box
-    msg! = "<html><div class='info'><p>Listed below are the current CSS layout definitions for the '<b>Flexbox Layout Preview</b>' <a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjchildwindow/bbjchildwindow.htm' target='_blank'>BBjChildWindow</a> at the top of the app that contains the multi-colored boxes. "
+    msg! = "<html><div class='info'><p>Listed below are the current CSS layout definitions for the '<b>Flexbox Layout Preview</b>' <code><a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjchildwindow/bbjchildwindow.htm' target='_blank'>BBjChildWindow</a></code> at the top of the app that contains the multi-colored boxes. "
     msg! = msg! + "The CSS information was retrieved via the following line of code:</p>"
     msg! = msg! + "<pre><code class='language-bbj'>" + bbjCodeGetStyle! + "</code></pre>"
 
-    msg! = msg! + "<p>Because winDemo! is a BBjChildWindow, we can apply styles to it easily using the "
-    msg! = msg! + "<a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/SysGui/bbjcontrol/BBjControl_setStyle.htm' target='_blank'>setStyle()</a> method.  "
+    msg! = msg! + "<p>Because <code>winDemo!</code> is a <code>BBjChildWindow</code>, we can apply styles to it easily using the "
+    msg! = msg! + "<code><a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/SysGui/bbjcontrol/BBjControl_setStyle.htm' target='_blank'>setStyle()</a></code> method.  "
     msg! = msg! + "However, if you're planning on using these definitions on a "
-    msg! = msg! + "<a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjtoplevelwindow/bbjtoplevelwindow.htm' target='_blank'>BBjTopLevelWindow</a>, "
-    msg! = msg! + "then you'll want to use the <a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjwindow/BBjWindow_setPanelStyle.htm' target='_blank'>setPanelStyle()</a> method instead, "
-    msg! = msg! + "as it's the immediate parent element in the DOM for the controls contained in the window.  "; rem For those cases, you would change the last line of BBj code shown below "
+    msg! = msg! + "<code><a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjtoplevelwindow/bbjtoplevelwindow.htm' target='_blank'>BBjTopLevelWindow</a></code>, "
+    msg! = msg! + "then you'll want to use the <code><a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjwindow/BBjWindow_setPanelStyle.htm' target='_blank'>setPanelStyle()</a></code> method as shown below, "
+    msg! = msg! + "as it's the immediate parent element in the DOM for the controls contained in the window.  "
 
-    msg! = msg! + "<p>Note that you'll also have to set the $00100000$ flag when creating the window, as that causes the window to use dynamic flow layout, ignoring all absolute control sizes and positions.</p>"
+    msg! = msg! + "<ul>"
+    msg! = msg! + "<li><b>Note 1</b>: You may need to change the name of the <code>window!</code> variable in the code sample if you use different variables for your <code>BBjWindow</code> objects</li>"
+    msg! = msg! + "<li><b>Note 2</b>: You will also have to set the <code>$00100000$</code> flag when creating the window, as that causes the window to use dynamic flow layout, ignoring all absolute control sizes and positions.</li>"
 
     if (grow! = "grow equally") then
-        msg! = msg! + "<p>Note that you'll also have to set the CSS&nbsp;<span style='background: var(--bbj-color-warning-50); color: var(--bbj-color-black);'><code>flex-grow: 1;</code></span>&nbsp;style "
-        msg! = msg! + "on all the window's contained controls to match the current settings.</p>"
+        msg! = msg! + "<li><b>Note 3</b>: You will also have to set the CSS&nbsp;<span style='background: var(--bbj-color-warning-50); color: var(--bbj-color-black);'><code>"
+        msg! = msg! + "<a href='https://developer.mozilla.org/en-US/docs/Web/CSS/flex-grow' target='_blank'>flex-grow: 1;</a></code></span>&nbsp;style "
+        msg! = msg! + "on all the window's contained controls to match the current settings.</li>"
     endif
+    msg! = msg! + "</ul>"
 
     msg! = msg! + "<p><h1>CSS Styles</h1><pre><code class='language-css'>" + cssCode! + "</code></pre></p>"
     msg! = msg! + "<p><h1>BBj Code</h1><pre><code class='language-bbj'>" + bbjCode! + "</code></pre></p></div>"
@@ -419,18 +423,8 @@ injectCss:
     css! = css! + "    overflow: auto;"
     css! = css! + "}"
 
-    rem Define the Configuration window
-    css! = css! + ".BBjWindow.winConfig {"
-    css! = css! + "    display: flex;"
-    css! = css! + "    align-items: stretch;"
-    css! = css! + "    padding: var(--bbj-space);"
-    css! = css! + "    gap: var(--bbj-space, 0.5em);"
-    css! = css! + "    border: var(--bbj-border-width) var(--bbj-border-style) var(--bbj-border-color-primary);"
-    css! = css! + "    border-radius: var(--bbj-border-radius);"
-    css! = css! + "}"
-
     rem Custom CSS for the BBjChildWindows
-    css! = css! + ".BBjChildWindow {"
+    css! = css! + ".BBjChildWindow:not(.winDemo):not(.winOptions) {"
     css! = css! + "    display: flex;"
     css! = css! + "    flex-direction: column;"
     css! = css! + "    flex-grow: 1;"
