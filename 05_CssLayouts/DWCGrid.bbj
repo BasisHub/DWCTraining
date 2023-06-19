@@ -18,6 +18,14 @@ if info(3,6)="5" then
     release
 endif
 
+if info(3,6)<>"6" then
+    msg! = "This app is designed to run in the BASIS Dynamic Web Client (DWC), as it uses CSS layout strategies "
+    msg! = msg! + "to size and position the controls on the window.  Please run the app in the DWC instead."
+    temp = msgbox(msg!, BBjSysGui.MSGBOX_ICON_STOP, "Incorrect Client Environment", mode="theme=danger")
+    release
+endif
+
+webManager! = BBjAPI().getWebManager()
 
 rem Create the main window
 window! = BBjAPI().openSysGui("X0").addWindow("BBj DWC CSS Layout Samples", $00180093$)
@@ -243,11 +251,11 @@ onCssStylesChange:
     css! = hashStyles!.get(style!)
 
     cssPreview!.setText(css!)
-    window!.setAttribute("@app-style", css!)
+    webManager!.injectStyle(css!, 0, "name=app_css")
 return
 
 
-
+declare auto BBjWebManager webManager!
 declare auto BBjTopLevelWindow window!
 declare auto BBjChildWindow winDemo!
 declare auto BBjChildWindow winOptions!
