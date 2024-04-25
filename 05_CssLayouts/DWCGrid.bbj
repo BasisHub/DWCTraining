@@ -18,6 +18,7 @@ if info(3,6)="5" then
     release
 endif
 
+rem If the app isn't running in the DWC, then give a warning message and exit
 if info(3,6)<>"6" then
     msg! = "This app is designed to run in the BASIS Dynamic Web Client (DWC), as it uses CSS layout strategies "
     msg! = msg! + "to size and position the controls on the window.  Please run the app in the DWC instead."
@@ -25,34 +26,27 @@ if info(3,6)<>"6" then
     release
 endif
 
-webManager! = BBjAPI().getWebManager()
+webManager! = BBjApi().getWebManager()
 
-rem Create the main window
-window! = BBjAPI().openSysGui("X0").addWindow("BBj DWC CSS Layout Samples", $00180093$)
-json! = new JsonObject()
-json!.addProperty("width", "100%")
-json!.addProperty("height", "100%")
-json!.addProperty("box-sizing", "border-box")
-json!.addProperty("display", "grid")
-json!.addProperty("grid-template-rows", "max-content minmax(16em, 1fr)")
-json!.addProperty("gap", "1em")
-json!.addProperty("padding", "1em")
-window!.setPanelStyle("@element", json!.toString())
+rem Create the main window and set CSS styles directly on the window
+window! = BBJAPI().openSysGui("X0").addWindow("BBj DWC CSS Grid Layout Samples", $00180093$)
+window!.maximize()
+
+rem The following shows how to style a BBjControl directly, be executing the BBjControl::setStyle BBjControl::setPanelStyle method
+rem Further down in the "init" subroutine, the app assigns custom CSS to a BBj string variable and uses the BBjWebManager to inject the CSS
+window!.setPanelStyle("width", "100%")
+window!.setPanelStyle("box-sizing", "border-box")
+window!.setPanelStyle("display", "grid")
+window!.setPanelStyle("grid-template-rows", "max-content minmax(16em, 1fr)")
+window!.setPanelStyle("gap", "1em")
+window!.setPanelStyle("padding", "1em")
 window!.setCallback(window!.ON_CLOSE, "onExit")
 gosub init
 
 
-rem Set control defaults by reducing the amount of padding in BBjListControls
-json! = new JsonObject()
-json!.addProperty("--bbj-list-padding", "0.1em")
-window!.setStyle("@root", json!.toString())
-
-
-rem Create the Demo Window
+rem Create the Demo Window and add a couple of custom class names to it
 winDemo! = window!.addChildWindow("CSS Layout", $00108000$, BBjAPI().getSysGui().getAvailableContext())
-winDemo!.setPanelStyle("background", "var(--bbj-color-primary-95)")
-winDemo!.setPanelStyle("border", "1px solid var(--bbj-color-primary-75)")
-winDemo!.addStyle("winDemo css-layout")
+winDemo!.addClass("winDemo css-layout")
 
 
 rem Build the Contact Form in the Demo Window
@@ -74,37 +68,31 @@ lbl! = winDemo!.addStaticText("Zip Code:", $8000$)
 editZip! = winDemo!.addEditBox("87109"); editZip!.setPlaceholder("Zip Code")
 
 
-rem Create the options
+rem Create the options window.  We add the "winOptions" class to it so that the CSS in the init routine can be applied to the control via the ".winOptions" selector that matches the custom class
 winOptions! = window!.addChildWindow("CSS Grid Properties", $00109800$, BBjAPI().getSysGui().getAvailableContext())
-json! = new JsonObject()
-json!.addProperty("width", "100%")
-json!.addProperty("height", "100%")
-json!.addProperty("box-sizing", "border-box")
-json!.addProperty("display", "grid")
-json!.addProperty("grid-template-columns", "auto 1fr")
-json!.addProperty("gap", "1em")
-winOptions!.setPanelStyle("@element", json!.toString())
+winOptions!.addClass("winOptions")
 
-rem List of CSS Settings
+
+rem List of pre-defined CSS Settings
 winChild! = winOptions!.addChildWindow("Select a CSS Layout", $00109000$, BBjAPI().getSysGui().getAvailableContext())
-winChild!.setStyle("@element", winStyle!.toString())
+winChild!.addClass("winSelectCSS")
 opts! = ""; for i = 1 to 9; opts! = opts! + "CSS Layout " + str(i) + $0a$; next i
 listCssStyles! = winChild!.addListBox(opts!)
+listCssStyles!.setStyle("height", "100%")
 listCssStyles!.selectIndex(0)
 listCssStyles!.setCallback(BBjListBox.ON_LIST_CLICK, "onCssStylesChange")
 
 rem Chosen CSS Style Preview
 winChild! = winOptions!.addChildWindow("CSS Preview", $00109000$, BBjAPI().getSysGui().getAvailableContext())
-winChild!.setStyle("@element", winStyle!.toString())
+winChild!.addClass("winCSSPreview")
 cssPreview! = winChild!.addStaticText(hashStyles!.get("css-layout-1"))
-json! = new JsonObject()
-json!.addProperty("white-space", "pre-wrap")
-json!.addProperty("font-family", "Consolas, Monaco, Inconsolata, monospace")
-json!.addProperty("font-size", "85%")
-json!.addProperty("overflow", "auto")
-cssPreview!.setStyle("@element", json!.toString())
-window!.setAttribute("@app-style", hashStyles!.get("css-layout-1"))
+cssPreview!.setStyle("white-space", "pre-wrap")
+cssPreview!.setStyle("font-family", "Consolas, Monaco, Inconsolata, monospace")
+cssPreview!.setStyle("font-size", "85%")
+cssPreview!.setStyle("overflow", "auto")
 
+
+webManager!.injectStyle(hashStyles!.get("css-layout-1"), 0, "name=app_css")
 
 window!.setVisible(1)
 process_events
@@ -168,7 +156,7 @@ init:
     hashStyles!.put("css-layout-4", css!)
 
 
-    css! = $0a$ + "/* CSS Grid using auto and fr with a 2-column layout */" + $0a0a$
+    css! = $0a$ + "/* CSS Grid using auto and fr with a 2-column layout.  Despite changing the browser's width, there will always be two columns. */" + $0a0a$
     css! = css! + ".css-layout.BBjSimpleWindow { " + $0a$
     css! = css! + "    display: grid; " + $0a$
     css! = css! + "    grid-template-columns: auto 1fr auto 1fr; " + $0a$
@@ -190,7 +178,8 @@ init:
     hashStyles!.put("css-layout-6", css!)
 
 
-    css! = $0a$ + "/* CSS Grid using repeat syntax with auto-fit to repeat the columns until the grid is filled */" + $0a0a$
+    css! = $0a$ + "/* CSS Grid using repeat syntax with auto-fit to repeat the columns until the grid is filled. "
+    css! = css! + " Resize your browser's width to affect how many columns are displayed. */" + $0a0a$
     css! = css! + ".css-layout.BBjSimpleWindow { " + $0a$
     css! = css! + "    display: grid; " + $0a$
     css! = css! + "    grid-template-columns: repeat(auto-fit, 100px 200px); " + $0a$
@@ -201,8 +190,9 @@ init:
     hashStyles!.put("css-layout-7", css!)
 
 
-    css! = $0a$ + "/* CSS Grid with 2 cols and media queries to show 4 and 6 cols when there's more screen space.  "
-    css! = css! +  "You need to maximize the form for this to work, as the media query is based on the viewport width! */" + $0a0a$
+    css! = $0a$ + "/* CSS Grid with 2 cols and media queries to show 4 and 6 cols when there's more screen space. "
+    css! = css! + " Because the main window is maximized, you'll need to resize your browser window's width for this to work. "
+    css! = css! + " That's because the media queries are based on the viewport width! */" + $0a0a$
     css! = css! + ".css-layout.BBjSimpleWindow { " + $0a$
     css! = css! + "    display: grid; " + $0a$
     css! = css! + "    grid-template-columns: auto 1fr; " + $0a$
@@ -231,16 +221,36 @@ init:
     hashStyles!.put("css-layout-9", css!)
 
 
-    rem Create a style to be applied later to the container windows
-    winStyle! = new JsonObject()
-    winStyle!.addProperty("display", "flex")
-    winStyle!.addProperty("flex-direction", "column")
-    winStyle!.addProperty("flex-grow", "1")
-    winStyle!.addProperty("align-items", "stretch")
-    winStyle!.addProperty("padding", "var(--bbj-space)")
-    winStyle!.addProperty("gap", "var(--bbj-space, 0.5em)")
-    winStyle!.addProperty("border", "var(--bbj-border-width) var(--bbj-border-style) var(--bbj-border-color-primary)")
-    winStyle!.addProperty("border-radius", "var(--bbj-border-radius)")
+
+    rem Define custom CSS styles for the windows.  Note that we're using selectors that match the custom class that we added to each window.
+    style$ =          ".winSelectCSS, .winCSSPreview {"
+    style$ = style$ + "    display: flex;"
+    style$ = style$ + "    flex-direction: column;"
+    style$ = style$ + "    flex-grow: 1;"
+    style$ = style$ + "    align-items: stretch;"
+    style$ = style$ + "    padding: var(--bbj-space);"
+    style$ = style$ + "    gap: var(--bbj-space: 0.5em);"
+    style$ = style$ + "    border: var(--bbj-border-width) var(--bbj-border-style) var(--bbj-border-color-primary);"
+    style$ = style$ + "    border-radius: var(--bbj-border-radius);"
+    style$ = style$ + "}"
+    style$ =          ".winDemo {"
+    style$ = style$ + "    background: var(--bbj-color-primary-95);"
+    style$ = style$ + "    border: 1px solid var(--bbj-color-primary-75);"
+    style$ = style$ + "}"
+    style$ = style$ + ".winOptions {"
+    style$ = style$ + "    width: 100%;"
+    style$ = style$ + "    height: 100%;"
+    style$ = style$ + "    box-sizing: border-box;"
+    style$ = style$ + "    display: grid;"
+    style$ = style$ + "    grid-template-columns: auto 1fr;"
+    style$ = style$ + "    gap: 1em;"
+    style$ = style$ + "}"
+
+    rem Change the value of a DWC CSS custom property to affect the amount of padding on BBjListBox items
+    style$ = style$ + ":root { --bbj-list-padding: 0.1em; }"
+
+    rem Now inject the CSS by injecting it into the <head> of the DOM
+    webManager!.injectStyle(style$)
 return
 
 
@@ -269,9 +279,7 @@ declare auto BBjEditBox editCountry!
 declare auto BBjEditBox editCity!
 declare auto BBjEditBox editState!
 declare auto BBjEditBox editZip!
-declare auto JsonObject json!
 declare auto BBjListClickEvent e!
 
 rem Use statements
-use com.google.gson.JsonObject
 use java.util.HashMap
