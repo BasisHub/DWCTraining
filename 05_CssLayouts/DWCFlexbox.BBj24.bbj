@@ -1,0 +1,540 @@
+rem /**
+rem  * DWCFlexbox.bbj
+rem  * @author ndecker
+rem  *
+rem  * Overview:
+rem  * This demo lets the user experiment with different CSS Flexbox properties to see how they affect the
+rem  * layout of a number of colored boxes in a separate display area.
+rem  *
+rem  * Features:
+rem  *  - It uses CSS for layout, so there's no ON_RESIZE event to deal with and everything is always sized/located correctly
+rem  *  - It uses the "system" DWC theme to automatically follow the host operating system's light/dark mode setting
+rem  *  - It uses the simplified API when adding controls by typically omitting the ID, x, y, width, and height parameters to make the code more succinct
+rem  *  - It uses the Prism.js (https://prismjs.com/) library to add syntax highlighter to the BBj and CSS code samples
+rem  *  - It uses a Prism.js plugin to copy the code samples to the user's clipboard
+rem  */
+
+
+rem If the app is running in BUI, switch it automatically to run in the DWC client instead
+if info(3,6)="5" then
+    bui! = BBjAPI().getBuiManager()
+    url! = bui!.getUrl().replaceAll("apps: webapp")
+    action! = bui!.urlAction(url!)
+    bui!.setEndAction(action!)
+    release
+endif
+
+rem Variable definitions
+winW = 300, winH = 500
+numBoxes = 15
+numVisibleBoxes = 3
+wrap! = "nowrap"
+direction! = "row"
+justification! = "flex-start"
+alignment! = "flex-start"
+grow! = "none"
+gosub init
+
+rem Inject the custom CSS defined at the end of the program
+gosub injectCss
+
+rem Create the main window
+sysgui = unt
+open (sysgui)"X0"
+sysgui! = bbjapi().getSysGui()
+window! = sysgui!.addWindow("DWC Flexbox Demo", $00180093$)
+
+rem Set the app's theme to follow the client's operating system's light/dark mode
+web!.setTheme("system")
+
+rem Create the preview area that lets us visualize the current layout parameters
+vectBoxControls! = BBjAPI().makeVector()
+sizePct! = str(100/(numVisibleBoxes):"##0.00%")
+winDemo! = window!.addChildWindow("Flexbox Layout Preview", $00109000$, sysgui!.getAvailableContext())
+winDemo!.addStyle("winDemo")
+winDemo!.setStyle("display", "flex")
+winDemo!.setStyle("flex-wrap", ""+wrap!+"")
+winDemo!.setStyle("flex-direction", ""+direction!+"")
+winDemo!.setStyle("align-items", ""+alignment!+"")
+winDemo!.setStyle("justify-content", ""+justification!+"")
+winDemo!.setStyle("background-color", "hsla(var(--dwc-color-primary-h), var(--dwc-color-primary-s), 75%, 0.1)")
+winDemo!.setStyle("border", "1px solid var(--dwc-color-primary-50)")
+winDemo!.setStyle("border-radius", "var(--dwc-border-radius)")
+winDemo!.setStyle("background-size", ""+sizePct!+"")
+winDemo!.setStyle("background-image", "radial-gradient(circle, #000000 1px, rgba(0, 0, 0, 0) 2px)")
+winDemo!.setStyle("background-image", "linear-gradient(to right, rgba(0, 0, 0, 0.5) 1px, transparent 1px)")
+winDemo!.setStyle("background-image", "linear-gradient(90deg, hsl(var(--dwc-color-danger-h), var(--dwc-color-danger-s), 75%) 1px, transparent 1px)")
+winDemo!.setStyle("background-position", "-0.5px 0px")
+
+
+rem Create the boxes and add them to a vector for later retrieval
+for i = 0 to numBoxes-1
+    hue = int(360/numVisibleBoxes) * i
+    backColor! =    "hsla(" + str(hue) + ", 50%, 75%, 0.35)"
+    borderColor! =  "hsl("  + str(hue) + ", 50%, 35%)"
+    textColor! =    "hsl("  + str(hue) + ", 50%, 25%)"
+
+    box! = winDemo!.addStaticText("Box " + str(i+1), $4000$)
+    box!.addStyle("box")
+    box!.setStyle("background", backColor!)
+    box!.setStyle("border", "2px solid " + borderColor!)
+    box!.setStyle("color", textColor!)
+    vectBoxControls!.addItem(box!)
+    if (i >= numVisibleBoxes) then box!.setVisible(0)
+next
+
+
+rem Create the window that contains the controls
+winOptions! = window!.addChildWindow("Controls", $00109800$, sysgui!.getAvailableContext())
+winOptions!.addStyle("winOptions")
+
+rem Create the Options Group with the InputNSpinner to control the number of visible boxes
+winConfig! = winOptions!.addChildWindow("Configuration", $00109000$, sysgui!.getAvailableContext())
+lbl! = winConfig!.addStaticText("Num. Boxes")
+spinBoxes! = winConfig!.addInputNSpinner($$,"#0",3,15)
+spinBoxes!.setValue(numVisibleBoxes)
+spinBoxes!.setAttribute("expanse", "m")
+spinBoxes!.setStyle("max-width", "8em")
+btnShowCss! = winConfig!.addButton("Show CSS")
+btnShowCss!.addStyle("show-css")
+btnShowCss!.setAttribute("expanse", "l")
+btnShowCss!.setAttribute("theme", "warning")
+
+rem Wrap Group
+winWrap! = winOptions!.addChildWindow("Wrap", $00109000$, sysgui!.getAvailableContext())
+listWrap! = winWrap!.addListBox(java.lang.String.join($0a$, java.util.Arrays.asList(vectWraps!)))
+listWrap!.selectIndex(vectWraps!.indexOf(wrap!))
+
+rem Direction Group
+winDirection! = winOptions!.addChildWindow("Direction", $00109000$, sysgui!.getAvailableContext())
+listDirection! = winDirection!.addListBox(java.lang.String.join($0a$, java.util.Arrays.asList(vectDirections!)))
+listDirection!.selectIndex(vectDirections!.indexOf(direction!))
+
+rem Justification Group
+if (direction! = "row") then title$ = "Justification (H)" else title$ = "Justification (V)"
+winJustification! = winOptions!.addChildWindow(title$, $00109000$, sysgui!.getAvailableContext())
+listJustification! = winJustification!.addListBox(java.lang.String.join($0a$, java.util.Arrays.asList(vectJustifications!)))
+listJustification!.selectIndex(vectJustifications!.indexOf(justification!))
+
+rem Alignment Group
+if (direction! = "row") then title$ = "Alignment (V)" else title$ = "Alignment (H)"
+winAlignments! = winOptions!.addChildWindow(title$, $00109000$, sysgui!.getAvailableContext())
+listAligment! = winAlignments!.addListBox(java.lang.String.join($0a$, java.util.Arrays.asList(vectAlignments!)))
+listAligment!.selectIndex(vectAlignments!.indexOf(alignment!))
+
+rem Item Flex-Grow Group
+winGrow! = winOptions!.addChildWindow("Item flex-grow", $00109000$, sysgui!.getAvailableContext())
+listGrow! = winGrow!.addListBox(java.lang.String.join($0a$, java.util.Arrays.asList(vectGrows!)))
+listGrow!.selectIndex(vectGrows!.indexOf(grow!))
+
+
+rem Set callbacks and Process Events
+window!.setCallback(BBjTopLevelWindow.ON_CLOSE, "onExit")
+listWrap!.setCallback(BBjListBox.ON_LIST_CLICK, "onWrapChange")
+listDirection!.setCallback(BBjListBox.ON_LIST_CLICK, "onDirectionChange")
+listJustification!.setCallback(BBjListBox.ON_LIST_CLICK, "onJustificationChange")
+listAligment!.setCallback(BBjListBox.ON_LIST_CLICK, "onAlignmentChange")
+listGrow!.setCallback(BBjListBox.ON_LIST_CLICK, "onGrowChange")
+spinBoxes!.setCallback(BBjInputNSpinner.ON_SPIN, "onNumBoxesSpin")
+btnShowCss!.setCallback(BBjButton.ON_BUTTON_PUSH, "onShowCss")
+
+rem Show the window and start processing user events
+window!.setVisible(1)
+process_events
+
+
+rem ================================================================================================
+rem Subroutines
+rem ================================================================================================
+
+rem Handle the user exiting the app
+onExit:
+release
+
+
+rem Callback for changing the flexbox wrap
+onWrapChange:
+    e! = cast(BBjListClickEvent, SysGui!.getLastEvent())
+    wrap! = str(vectWraps!.getItem(e!.getSelectedIndex()))
+    winDemo!.setStyle("flex-wrap", wrap!)
+return
+
+
+rem Callback for wchanging the flexbox direction
+onDirectionChange:
+    e! = cast(BBjListClickEvent, SysGui!.getLastEvent())
+    direction! = str(vectDirections!.getItem(e!.getSelectedIndex()))
+    winDemo!.setStyle("flex-direction", direction!)
+    if (direction!.startsWith("row")) then
+        winJustification!.setText("Justification (H)")
+        winAlignments!.setText("Alignment (V)")
+    else
+        winJustification!.setText("Justification (V)")
+        winAlignments!.setText("Alignment (H)")
+    endif
+return
+
+
+rem Callback for changing the flexbox justification
+onJustificationChange:
+    e! = cast(BBjListClickEvent, SysGui!.getLastEvent())
+    justification! = str(vectJustifications!.getItem(e!.getSelectedIndex()))
+    winDemo!.setStyle("justify-content", justification!)
+return
+
+
+rem Callback for changing the flexbox alignment
+onAlignmentChange:
+    e! = cast(BBjListClickEvent, SysGui!.getLastEvent())
+    alignment! = str(vectAlignments!.getItem(e!.getSelectedIndex()))
+    winDemo!.setStyle("align-items", alignment!)
+return
+
+
+rem Callback for changing the flex-grow value
+onGrowChange:
+    e! = cast(BBjListClickEvent, SysGui!.getLastEvent())
+    grow! = str(vectGrows!.getItem(e!.getSelectedIndex()))
+    gosub setBoxGrowFactor
+return
+
+
+rem Define all possible values for directions, justifications, grow values, etc.
+init:
+    rem Define the wraps
+    vectWraps! = BBjAPI().makeVector()
+    vectWraps!.addItem("nowrap")
+    vectWraps!.addItem("wrap")
+    vectWraps!.addItem("wrap-reverse")
+
+    rem Define the directions
+    vectDirections! = BBjAPI().makeVector()
+    vectDirections!.addItem("row")
+    vectDirections!.addItem("row-reverse")
+    vectDirections!.addItem("column")
+    vectDirections!.addItem("column-reverse")
+
+    rem Define the justifications
+    vectJustifications! = BBjAPI().makeVector()
+    vectJustifications!.addItem("flex-start")
+    vectJustifications!.addItem("flex-end")
+    vectJustifications!.addItem("center")
+    vectJustifications!.addItem("space-between")
+    vectJustifications!.addItem("space-around")
+    vectJustifications!.addItem("space-evenly")
+
+    rem Define the Alignments
+    vectAlignments! = BBjAPI().makeVector()
+    vectAlignments!.addItem("flex-start")
+    vectAlignments!.addItem("center")
+    vectAlignments!.addItem("flex-end")
+    vectAlignments!.addItem("stretch")
+
+    rem Define the item grow values
+    vectGrows! = BBjAPI().makeVector()
+    vectGrows!.addItem("none")
+    vectGrows!.addItem("grow equally")
+    vectGrows!.addItem("small outers")
+    vectGrows!.addItem("increasing")
+    vectGrows!.addItem("decreasing")
+    vectGrows!.addItem("pyramid")
+return
+
+
+rem Callback for when the user changes the number of boxes to show in the visualization area
+onNumBoxesSpin:
+    e! = cast(BBjSpinEvent, SysGui!.getLastEvent())
+    numVisibleBoxes = num(e!.getText())
+
+    rem Change the box colors so that they are always spread across the hue spectrum
+    for i = 0 to numBoxes-1
+        hue = int(360/numVisibleBoxes) * i
+        backColor! =    "hsla(" + str(hue) + ", 50%, 75%, 0.35)"
+        borderColor! =  "hsl("  + str(hue) + ", 50%, 35%)"
+        textColor! =    "hsl("  + str(hue) + ", 50%, 25%)"
+
+        box! = vectBoxControls!.getItem(i)
+        box!.setStyle("background", backColor!)
+        box!.setStyle("border", "2px solid " + borderColor!)
+        box!.setStyle("color", textColor!)
+        vectBoxControls!.addItem(box!)
+        if (i >= numVisibleBoxes) then
+            box!.setVisible(0)
+        else
+            box!.setVisible(1)
+        endif
+    next
+
+    rem Update the background grid pattern to match the number of boxes shown
+    sizePct! = str(100/numVisibleBoxes:"##0.00%")
+
+    rem If there are more than 10 boxes, turn off the grid pattern
+    if (numVisibleBoxes > 10) then sizePct! = "0%"
+    winDemo!.setStyle("background-size", sizePct!)
+
+    rem Reapply the flex-grow properties since the number of boxes has changed
+    gosub setBoxGrowFactor
+return
+
+
+rem Sets the flex-grow property for the boxes, and relies on grow! being set to the desired value
+setBoxGrowFactor:
+    midpoint = numVisibleBoxes/2
+    flexGrowSize = 0
+    for i = 0 to numVisibleBoxes-1
+        box! = cast(BBjStaticText, vectBoxControls!.getItem(i))
+
+        rem Set a grow size for the pyramid shape, where we have to keep track of the index and midpoint
+        if (i <= midpoint) then
+            flexGrowSize = flexGrowSize + 1
+        else
+            flexGrowSize = flexGrowSize - 1
+        endif
+
+        switch grow!
+            case str(vectGrows!.getItem(0))
+                rem none
+                box!.setStyle("flex-grow", "unset")
+                break
+            case str(vectGrows!.getItem(1))
+                rem grow equally
+                box!.setStyle("flex-grow", "1")
+                break
+            case str(vectGrows!.getItem(2))
+                rem small outers
+                if (i > 0) and (i < numVisibleBoxes-1) then
+                    box!.setStyle("flex-grow", "10")
+                else
+                    box!.setStyle("flex-grow", "1")
+                endif
+                break
+            case str(vectGrows!.getItem(3))
+                rem increasing
+                box!.setStyle("flex-grow", str(i))
+                break
+            case str(vectGrows!.getItem(4))
+                rem decreasing
+                box!.setStyle("flex-grow", str(numVisibleBoxes-i))
+                break
+            case str(vectGrows!.getItem(5))
+                rem pyramid
+                box!.setStyle("flex-grow", str(flexGrowSize))
+                break
+        swend
+    next
+return
+
+
+rem Shows the current CSS settings in effect so they can be copied into another program
+onShowCss:
+    rem Get the window's styles that are currently in effect
+    cssCode! = winDemo!.getAttribute("style")
+
+    rem Remove styles that don't deal with layout, i.e. border, background, etc.
+    cssCode! = cssCode!.replaceAll("(\s*)back(.*?);(\s*)", "")
+    cssCode! = cssCode!.replaceAll("(\s*)border(.*?);(\s*)", "")
+    cssCode! = cssCode!.replaceAll("(\s*)min-height(.*?);(\s*)", "")
+
+    rem Create the BBj code version
+    bbjCodeGetStyle! = "cssCode! = winDemo!.getAttribute(""style"")"
+    bbjCode! = "rem Set the window's layout using CSS Flexbox" + $0a$
+    bbjCode! = bbjCode! + "window!.setPanelStyle(""height"", ""100%"")" + $0a$
+    codeString! = cssCode!.replaceAll(";(\s*)", $0a$)
+    while codeString!.indexOf($0a$) > -1
+        p1 = codeString!.indexOf(":")
+        p2 = codeString!.indexOf($0a$)
+        bbjCode! = bbjCode! + "window!.setPanelStyle(""" + codeString!.substring(0, p1) + """, """ + codeString!.substring(p1+1, p2).trim() + """)" + $0a$
+        codeString! = codeString!.substring(p2+1)
+    wend
+
+    rem Add linebreaks into the CSS code for Prism
+    bbjCode! = bbjCode!.replaceAll($0a$, "&#10;")
+    cssCode! = cssCode!.replaceAll(";\s*", ";&#10;")
+
+    rem Inject the Prism library to provide syntax highlighting for code samples.
+    rem We're including an error branch so that it will fail gracefully
+    web!.injectStyle(DemoUtils.getFileContents(dsk("")+dir("")+"prism.min.css",err=*NEXT), 0, "name=prism_css_bottom")
+    web!.injectScript(DemoUtils.getFileContents(dsk("")+dir("")+"prism.min.js",err=*NEXT), 0, "name=prism_js_bottom")
+
+    rem Define the contents of the message box
+    msg! = "<html><div class='info'><p>Listed below are the current CSS layout definitions for the '<b>Flexbox Layout Preview</b>' <code><a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjchildwindow/bbjchildwindow.htm' target='_blank'>BBjChildWindow</a></code> at the top of the app that contains the multi-colored boxes. "
+    msg! = msg! + "The CSS information was retrieved via the following line of code:</p>"
+    msg! = msg! + "<pre><code class='language-bbj'>" + bbjCodeGetStyle! + "</code></pre>"
+
+    msg! = msg! + "<p>Because <code>winDemo!</code> is a <code>BBjChildWindow</code>, we can apply styles to it easily using the "
+    msg! = msg! + "<code><a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/SysGui/bbjcontrol/BBjControl_setStyle.htm' target='_blank'>setStyle()</a></code> method.  "
+    msg! = msg! + "However, if you're planning on using these definitions on a "
+    msg! = msg! + "<code><a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjtoplevelwindow/bbjtoplevelwindow.htm' target='_blank'>BBjTopLevelWindow</a></code>, "
+    msg! = msg! + "then you'll want to use the <code><a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjwindow/BBjWindow_setPanelStyle.htm' target='_blank'>setPanelStyle()</a></code> method as shown below, "
+    msg! = msg! + "as it's the immediate parent element in the DOM for the controls contained in the window.  "
+
+    msg! = msg! + "<ul>"
+    msg! = msg! + "<li><b>Note 1</b>: You may need to change the name of the <code>window!</code> variable in the code sample if you use different variables for your <code>BBjWindow</code> objects</li>"
+    msg! = msg! + "<li><b>Note 2</b>: You will also have to set the <code>$00100000$</code> flag when creating the window, as that causes the window to use dynamic flow layout, ignoring all absolute control sizes and positions.</li>"
+
+    if (grow! = "grow equally") then
+        msg! = msg! + "<li><b>Note 3</b>: You will also have to set the CSS&nbsp;<span style='background: var(--dwc-color-warning-50); color: var(--dwc-color-black);'><code>"
+        msg! = msg! + "<a href='https://developer.mozilla.org/en-US/docs/Web/CSS/flex-grow' target='_blank'>flex-grow: 1;</a></code></span>&nbsp;style "
+        msg! = msg! + "on all the window's contained controls to match the current settings.</li>"
+    endif
+    msg! = msg! + "</ul>"
+
+    msg! = msg! + "<p><h1>CSS Styles</h1><pre><code class='language-css'>" + cssCode! + "</code></pre></p>"
+    msg! = msg! + "<p><h1>BBj Code</h1><pre><code class='language-bbj'>" + bbjCode! + "</code></pre></p></div>"
+
+    rem Show the messagebox
+    tmp = msgbox(msg!, BBjSysGui.MSGBOX_ICON_INFORMATION, "Layout Information", MODE="max-width=800px,max-height=96vh,theme=primary")
+return
+
+
+rem Inject custom CSS instead of registering an external CSS file with the app in EM.  This is done because it's easier
+rem to modify the CSS during development and see the changes on the next app invocation, and makes this a standalone sample.
+injectCss:
+
+    rem Get the Web Manager and inject the links for the custom Google fonts
+    web! = BBjAPI().getWebManager()
+    web!.injectLinkUrl("<link rel='preconnect' href='https://fonts.googleapis.com'>", 1)
+    web!.injectLinkUrl("<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>", 1)
+    web!.injectLinkUrl("<link href='https://fonts.googleapis.com/css2?family=Inconsolata&family=Ubuntu+Mono:ital@0;1&display=swap' rel='stylesheet'>", 1)
+
+    rem Give the window a minimum width and height so that the user can't make it too small
+    css! =        "dwc-window-content {"
+    css! = css! + "    min-height: 27em;"
+    css! = css! + "    min-width: 40em;"
+    css! = css! + "}"
+
+    rem Define a CSS Grid layout for the main window's panel (the element that contains all the BBj controls)
+    css! = css! + "dwc-window-content {"
+    css! = css! + "    box-sizing: border-box;"
+    css! = css! + "    display: grid;"
+    css! = css! + "    grid-template-rows: minmax(8em, 1fr) auto;"
+    css! = css! + "    padding: var(--dwc-space);"
+    css! = css! + "    height: 100%;"
+    css! = css! + "}"
+
+    rem Define the Options window
+    css! = css! + "fieldset.winOptions {"
+    css! = css! + "    margin-top: 1.5em;"
+    css! = css! + "    display: flex;"
+    css! = css! + "    flex-direction: row;"
+    css! = css! + "    flex-wrap: wrap;"
+    css! = css! + "    align-items: stretch;"
+    css! = css! + "    gap: var(--dwc-space);"
+    css! = css! + "    overflow: auto;"
+    css! = css! + "}"
+
+    rem Custom CSS for the BBjChildWindows
+    css! = css! + "fieldset:not(.winDemo):not(.winOptions) {"
+    css! = css! + "    display: flex;"
+    css! = css! + "    flex-direction: column;"
+    css! = css! + "    flex-grow: 1;"
+    css! = css! + "    align-items: stretch;"
+    css! = css! + "    padding: var(--dwc-space);"
+    css! = css! + "    gap: var(--dwc-space, 0.5em);"
+    css! = css! + "    border: var(--dwc-border-width) var(--dwc-border-style) var(--dwc-border-color-primary);"
+    css! = css! + "    border-radius: var(--dwc-border-radius);"
+    css! = css! + "}"
+
+    rem Custom CSS for the BBjChildWindows displaying as GroupBoxes
+    css! = css! + "fieldset legend {"
+    css! = css! + "    font-weight: var(--dwc-font-weight-semibold);"
+    css! = css! + "    color: var(--dwc-color-primary-text);"
+    css! = css! + "    color: var(--dwc-color-primary-text);"
+    css! = css! +"}"
+
+    rem Define the boxes in the Preview area
+    css! = css! + ".box {"
+    css! = css! + "    font-size: var(--dwc-font-size-m);"
+    css! = css! + "    font-family: var(--dwc-font-family-mono);"
+    css! = css! + "    font-weight: var(--dwc-font-weight-bold);"
+    css! = css! + "    padding: 10px 20px;"
+    css! = css! + "    margin: 1px;"
+    css! = css! + "    border-radius: var(--dwc-border-radius);"
+    css! = css! + "    /* The following centers the text inside the box */"
+    css! = css! + "    display: flex;"
+    css! = css! + "    justify-content: center;"
+    css! = css! + "    align-content: center;"
+    css! = css! + "    flex-direction: column;"
+    css! = css! + "}"
+
+    rem Define custom CSS for the BBjListBoxes in the options window
+    css! = css! + "dwc-listbox {"
+    css! = css! + "    height: 100%;"
+    css! = css! + "}"
+    css! = css! + "dwc-listbox::part(control-wrapper) {"
+    css! = css! + "    border: none;"
+    css! = css! + "}"
+
+    rem Give BBjButtons a minimum width
+    css! = css! + "dwc-button {"
+    css! = css! + "    min-width: 10ch;"
+    css! = css! + "}"
+
+    rem Change the CSS custom properties specifically for the [Show CSS] button
+    css! = css! + ".show-css::part(control) {"
+    css! = css! + "    --dwc-button-background: hsl(44, 100%, 55%);"
+    css! = css! + "    --dwc-button-hover-background: hsl(44, 100%, 60%);"
+    css! = css! + "    --dwc-button-selected-background: hsl(44, 100%, 50%);"
+    css! = css! + "}"
+
+    rem Custom CSS for the code samples in the information message that you see after pressing the [Show CSS] button
+    css! = css! + "pre {"
+    css! = css! + "    padding: var(--dwc-space);"
+    css! = css! + "    margin: 0.25em;"
+    css! = css! + "    background: var(--dwc-color-gray-95);"
+    css! = css! + "}"
+
+    rem If the PRE sections aren't styled wtih Prism, then we'll define our own borders for them
+    css! = css! + "pre:not([class*='language']) {"
+    css! = css! + "    border: 1px solid var(--dwc-color-gray);"
+    css! = css! + "    border-radius: var(--dwc-border-radius-m);"
+    css! = css! + "}"
+
+    css! = css! + "code {"
+    css! = css! + "    font-family: Consolas, var(--dwc-font-family-mono);"
+    css! = css! + "    font-weight: var(--dwc-font-weight-bold);"
+    css! = css! + "    line-height: 140%;"
+    css! = css! + "    color: hsl(0, 0%, 25%);"
+    css! = css! + "    -webkit-font-smoothing: subpixel-antialiased;"
+    css! = css! + "}"
+    css! = css! + "h1 {"
+    css! = css! + "    margin: 0.5em 0;"
+    css! = css! + "    font-size: var(--dwc-font-size-m);"
+    css! = css! + "}"
+
+    web!.injectStyle(css!, 0)
+return
+
+
+rem Declares
+declare auto BBjWebManager web!
+declare auto BBjSysGui sysgui!
+declare auto BBjTopLevelWindow window!
+declare auto BBjChildWindow winOptions!
+declare auto BBjChildWindow winDemo!
+declare auto BBjChildWindow winConfig!
+declare auto BBjChildWindow winDirection!
+declare auto BBjChildWindow winJustification!
+declare auto BBjChildWindow winAlignments!
+declare auto BBjChildWindow winGrow!
+
+declare auto BBjListBox listWrap!
+declare auto BBjListBox listDirection!
+declare auto BBjListBox listJustification!
+declare auto BBjListBox listGrow!
+declare auto BBjListBox listAligment!
+declare auto BBjInputNSpinner spinBoxes!
+declare auto BBjStaticText box!
+declare auto BBjVector vectWraps!
+declare auto BBjVector vectDirections!
+declare auto BBjVector vectJustifications!
+declare auto BBjVector vectAlignments!
+declare auto BBjVector vectGrows!
+declare auto BBjVector vectBoxControls!
+
+declare auto BBjString cssCode!
+declare auto BBjString bbjCode!
+declare auto BBjString codeString!
+
+rem USE Statements
+use ::DemoUtils.bbj::DemoUtils
