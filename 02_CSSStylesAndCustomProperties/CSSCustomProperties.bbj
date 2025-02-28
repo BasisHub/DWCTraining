@@ -31,19 +31,6 @@ gosub ApplyStylesAndLayout
 
 rem Add a child window container for sample controls
 myChildWindow! = myWindow!.addChildWindow("Sample Controls", $00109000$, BBjAPI().getSysGui().getAvailableContext())
-json! = new JsonObject()
-json!.addProperty("width", "100%")
-json!.addProperty("padding", "var(--bbj-space)")
-json!.addProperty("display", "flex")
-json!.addProperty("gap", "var(--bbj-space)")
-json!.addProperty("align-items", "center")
-json!.addProperty("border-color", "var(--bbj-color-primary)")
-json!.addProperty("border-radius", "var(--bbj-border-radius)")
-title! = new JsonObject()
-title!.addProperty("color", "var(--bbj-color-primary)")
-title!.addProperty("font-weight", "bold")
-json!.addProperty("& > legend", title!.toString())
-myChildWindow!.setStyle("@element", json!.toString())
 
 myEdit! = myChildWindow!.addEditBox("Edit Box")
 myCheck! = myChildWindow!.addCheckBox("Check Box")
@@ -53,10 +40,8 @@ myRadio!.setSelected(1)
 myNav! = myChildWindow!.addNavigator("Navigator")
 
 
-rem Add a child window container for the CSS Custom Property controls
+rem Add a child window container for the CSS Custom Property and Value controls
 myChildWindow! = myWindow!.addChildWindow("Set New Values for CSS Custom Properties", $00109000$, BBjAPI().getSysGui().getAvailableContext())
-json!.addProperty("align-items", "baseline")
-myChildWindow!.setStyle("@element", json!.toString())
 
 myListEditCSSProps! = myChildWindow!.addListEdit(String.join($0a$, cast(Iterable, myVectCssProps!)))
 myListEditCSSProps!.setAttribute("label", "CSS Property")
@@ -90,30 +75,52 @@ release
 
 rem Apply CSS styles and define the window layout via CSS
 ApplyStylesAndLayout:
-    rem Define the main window's layout using CSS Grid
-    json! = new JsonObject()
-    json!.addProperty("box-sizing", "border-box")
-    json!.addProperty("width", "100%")
-    json!.addProperty("height", "100%")
-    json!.addProperty("padding", "var(--bbj-space-l)")
-    json!.addProperty("display", "grid")
-    json!.addProperty("gap", "var(--bbj-space-2xl)")
-    json!.addProperty("grid-template-columns", "1fr")
-    json!.addProperty("justify-items", "stretch")
-    json!.addProperty("align-items", "stretch")
-    myWindow!.setPanelStyle("@element", json!.toString())
+    rem Define the main window's layout using CSS Flexbox
+    css! = "dwc-window-content { "
+    css! = css! + "    width: 100%;"
+    css! = css! + "    box-sizing: border-box;"
+    css! = css! + "    padding: var(--dwc-space-l);"
+    css! = css! + "    display: flex;"
+    css! = css! + "    flex-direction: column;"
+    css! = css! + "    gap: var(--dwc-space-2xl);"
+    css! = css! + "    align-items: center;"
+    css! = css! + "    border-color: var(--dwc-color-primary);"
+    css! = css! + "    border-radius: var(--dwc-border-radius);"
+    css! = css! + "} "
+
+    rem Define the Child Windows, which are implemented as fieldsets given their creation flags
+    css! = css! + "dwc-window-content fieldset[is='dwc-fieldset-panel'] { "
+    css! = css! + "    box-sizing: border-box; "
+    css! = css! + "    width: 100%; "
+    css! = css! + "    height: 100%; "
+    css! = css! + "    padding: var(--dwc-space-l); "
+    css! = css! + "    display: grid; "
+    css! = css! + "    gap: var(--dwc-space-2xl); "
+    css! = css! + "    grid-template-columns: 1fr; "
+    css! = css! + "    justify-items: stretch; "
+    css! = css! + "    align-items: stretch; "
+    css! = css! + "}"
+
+    rem Define the Child Window's title
+    css! = css! + "fieldset > legend { "
+    css! = css! + "    color: var(--dwc-color-primary); "
+    css! = css! + "    font-weight: bold; "
+    css! = css! + "}"
+
+    rem Inject the CSS
+    BBjAPI().getWebManager().injectStyle(css!)
 
     rem Define several CSS Custom Properties
     myVectCssProps! = BBjAPI().makeVector()
-    myVectCssProps!.addItem("--bbj-font-size")
-    myVectCssProps!.addItem("--bbj-font-weight")
-    myVectCssProps!.addItem("--bbj-color-body-text")
-    myVectCssProps!.addItem("--bbj-color-primary-text")
-    myVectCssProps!.addItem("--bbj-color-primary")
-    myVectCssProps!.addItem("--bbj-navigator-button-background")
+    myVectCssProps!.addItem("--dwc-font-size")
+    myVectCssProps!.addItem("--dwc-font-weight")
+    myVectCssProps!.addItem("--dwc-color-body-text")
+    myVectCssProps!.addItem("--dwc-color-primary-text")
+    myVectCssProps!.addItem("--dwc-color-primary")
+    myVectCssProps!.addItem("--dwc-navigator-button-background")
 
 
-    rem Define several CSS Custom Properties
+    rem Define several possible values for the above CSS Custom Properties
     myVectCssVals! = BBjAPI().makeVector()
     myVectCssVals!.addItem("20px")
     myVectCssVals!.addItem("12px")
@@ -140,9 +147,8 @@ return
 
 rem Set the CSS Custom Property to the Designated Value
 OnButtonPush:
-    json! = new JsonObject()
-    json!.addProperty(currentProperty$, currentValue$)
-    myWindow!.setStyle("@root", json!.toString())
+    css! = ":root { " + currentProperty$ + ": " + currentValue$ + "; }"
+    BBjAPI().getWebManager().injectStyle(css!)
 return
 
 
@@ -154,8 +160,3 @@ declare auto BBjListEdit myListEditCSSProps!
 declare auto BBjListEdit myListEditCSSVals!
 declare auto BBjButton myButtonSetCSS!
 declare auto BBjEditModifyEvent event!
-declare auto JsonObject json!
-
-
-rem USE statements
-use com.google.gson.JsonObject
