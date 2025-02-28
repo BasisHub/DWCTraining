@@ -19,18 +19,18 @@ ed_firstname! = wnd!.addEditBox("")
 st! = wnd!.addStaticText("Last Name:")
 ed_lastname! = wnd!.addEditBox("")
 
-rem use an icon from the tabular pool
+rem Use an icon from the tabular pool
 rem @see https://tabler-icons.io/
-rem https://basishub.github.io/basis-next/#/dwc/bbj-icon
-btnIcon$ = "<bbj-icon name='speakerphone'></bbj-icon>"
+rem https://dwc.style/docs/#/dwc/dwc-icon
+btnIcon$ = "<dwc-icon name='speakerphone'></dwc-icon>"
 
-rem use an icon from the feather pool
+rem Use an icon from the feather pool
 rem @see https://feathericons.com/
-rem btnIcon$ = "<bbj-icon name='speaker' pool='feather'></bbj-icon>"
+rem btnIcon$ = "<dwc-icon name='speaker' pool='feather'></dwc-icon>"
 
-rem use an icon from the fontawesome-free pool
+rem Use an icon from the fontawesome-free pool
 rem @see https://fontawesome.com/v5/search?m=free
-rem btnIcon$ = "<bbj-icon name='fas-microphone-alt' pool='fa'></bbj-icon>"
+rem btnIcon$ = "<dwc-icon name='fas-microphone-alt' pool='fa'></dwc-icon>"
 
 btn! = wnd!.addButton("<html>Say Hello" + btnIcon$ +"</html>")
 

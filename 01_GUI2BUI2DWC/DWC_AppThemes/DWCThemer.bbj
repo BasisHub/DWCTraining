@@ -16,10 +16,9 @@ use java.nio.file.Paths
 
 fs! = BBjAPI().getFileSystem()
 theme! = new String(Files.readAllBytes(Paths.get(fs!.resolvePath("./css/MyDwcTheme.css"))))
+BBjAPI().getWebManager().injectStyle(theme!)
 
 wnd! = BBjAPI().openSysGui("X0").addWindow("Hello BBj DWC", $01101083$)
-wnd!.setAttribute("@app-style-bottom", theme!)
-
 wnd!.setPanelStyle("display","inline-grid")
 wnd!.setPanelStyle("grid-template-columns","1fr 1fr")
 wnd!.setPanelStyle("gap","5px")
