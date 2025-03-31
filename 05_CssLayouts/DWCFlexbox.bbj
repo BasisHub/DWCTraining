@@ -44,8 +44,8 @@ open (sysgui)"X0"
 sysgui! = bbjapi().getSysGui()
 window! = sysgui!.addWindow("DWC Flexbox Demo", $00180093$)
 
-rem Set the app's theme to follow the client's operating system's light/dark mode
-web!.setTheme("system")
+rem Optionally set the app's theme to follow the client's operating system's light/dark mode
+REM web!.setTheme("system")
 
 rem Create the preview area that lets us visualize the current layout parameters
 vectBoxControls! = BBjAPI().makeVector()
@@ -57,13 +57,13 @@ winDemo!.setStyle("flex-wrap", ""+wrap!+"")
 winDemo!.setStyle("flex-direction", ""+direction!+"")
 winDemo!.setStyle("align-items", ""+alignment!+"")
 winDemo!.setStyle("justify-content", ""+justification!+"")
-winDemo!.setStyle("background-color", "hsla(var(--bbj-color-primary-h), var(--bbj-color-primary-s), 75%, 0.1)")
-winDemo!.setStyle("border", "1px solid var(--bbj-color-primary-50)")
-winDemo!.setStyle("border-radius", "var(--bbj-border-radius)")
+winDemo!.setStyle("background-color", "hsla(var(--dwc-color-primary-h), var(--dwc-color-primary-s), 75%, 0.1)")
+winDemo!.setStyle("border", "1px solid var(--dwc-color-primary-50)")
+winDemo!.setStyle("border-radius", "var(--dwc-border-radius)")
 winDemo!.setStyle("background-size", ""+sizePct!+"")
 winDemo!.setStyle("background-image", "radial-gradient(circle, #000000 1px, rgba(0, 0, 0, 0) 2px)")
 winDemo!.setStyle("background-image", "linear-gradient(to right, rgba(0, 0, 0, 0.5) 1px, transparent 1px)")
-winDemo!.setStyle("background-image", "linear-gradient(90deg, hsl(var(--bbj-color-danger-h), var(--bbj-color-danger-s), 75%) 1px, transparent 1px)")
+winDemo!.setStyle("background-image", "linear-gradient(90deg, hsl(var(--dwc-color-danger-h), var(--dwc-color-danger-s), 75%) 1px, transparent 1px)")
 winDemo!.setStyle("background-position", "-0.5px 0px")
 
 
@@ -90,15 +90,16 @@ winOptions!.addStyle("winOptions")
 
 rem Create the Options Group with the InputNSpinner to control the number of visible boxes
 winConfig! = winOptions!.addChildWindow("Configuration", $00109000$, sysgui!.getAvailableContext())
-lbl! = winConfig!.addStaticText("Num. Boxes")
+winConfig!.addStyle("winConfig")
 spinBoxes! = winConfig!.addInputNSpinner($$,"#0",3,15)
 spinBoxes!.setValue(numVisibleBoxes)
 spinBoxes!.setAttribute("expanse", "m")
-spinBoxes!.setStyle("max-width", "8em")
+spinBoxes!.setAttribute("label", "Number of Boxes")
 btnShowCss! = winConfig!.addButton("Show CSS")
 btnShowCss!.addStyle("show-css")
 btnShowCss!.setAttribute("expanse", "l")
 btnShowCss!.setAttribute("theme", "warning")
+
 
 rem Wrap Group
 winWrap! = winOptions!.addChildWindow("Wrap", $00109000$, sysgui!.getAvailableContext())
@@ -373,14 +374,19 @@ onShowCss:
     msg! = msg! + "<li><b>Note 2</b>: You will also have to set the <code>$00100000$</code> flag when creating the window, as that causes the window to use dynamic flow layout, ignoring all absolute control sizes and positions.</li>"
 
     if (grow! = "grow equally") then
-        msg! = msg! + "<li><b>Note 3</b>: You will also have to set the CSS&nbsp;<span style='background: var(--bbj-color-warning-50); color: var(--bbj-color-black);'><code>"
+        msg! = msg! + "<li><b>Note 3</b>: You will also have to set the CSS&nbsp;<span style='background: var(--dwc-color-warning-50); color: var(--dwc-color-black);'><code>"
         msg! = msg! + "<a href='https://developer.mozilla.org/en-US/docs/Web/CSS/flex-grow' target='_blank'>flex-grow: 1;</a></code></span>&nbsp;style "
         msg! = msg! + "on all the window's contained controls to match the current settings.</li>"
     endif
     msg! = msg! + "</ul>"
 
-    msg! = msg! + "<p><h1>CSS Styles</h1><pre><code class='language-css'>" + cssCode! + "</code></pre></p>"
-    msg! = msg! + "<p><h1>BBj Code</h1><pre><code class='language-bbj'>" + bbjCode! + "</code></pre></p></div>"
+    msg! = msg! + "<p>To implement this CSS in your project, you can copy the CSS code directly and include it in your own external CSS file. This "
+    msg! = msg! + "file can then be injected into the app's DOM via the <code><a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bui/BBjBuiManager/BBjBuiManager_injectStyle.htm' target='_blank'>BBjWebManager::injectStyle()</a></code> method, or registered with the app "
+    msg! = msg! + "in Enterprise Manager (EM) using the <code>Register CSS</code> option in the <code>App Settings</code> tab. "
+    msg! = msg! + "Alternatively, you can apply the styles directly in your BBj application code.</p><br>"
+
+    msg! = msg! + "<p><h1>Method 1: CSS Styles</h1><pre><code class='language-css'>" + cssCode! + "</code></pre></p>"
+    msg! = msg! + "<p><h1>Method 1: BBj Code</h1><pre><code class='language-bbj'>" + bbjCode! + "</code></pre></p></div>"
 
     rem Show the messagebox
     tmp = msgbox(msg!, BBjSysGui.MSGBOX_ICON_INFORMATION, "Layout Information", MODE="max-width=800px,max-height=96vh,theme=primary")
@@ -398,58 +404,64 @@ injectCss:
     web!.injectLinkUrl("<link href='https://fonts.googleapis.com/css2?family=Inconsolata&family=Ubuntu+Mono:ital@0;1&display=swap' rel='stylesheet'>", 1)
 
     rem Give the window a minimum width and height so that the user can't make it too small
-    css! =        ".BBjTopLevelWindow-center {"
+    css! =        "dwc-window-content {"
     css! = css! + "    min-height: 27em;"
     css! = css! + "    min-width: 40em;"
     css! = css! + "}"
 
     rem Define a CSS Grid layout for the main window's panel (the element that contains all the BBj controls)
-    css! = css! + ".BBjTopLevelWindow .BBjPanel {"
+    css! = css! + "dwc-window-content {"
     css! = css! + "    box-sizing: border-box;"
     css! = css! + "    display: grid;"
     css! = css! + "    grid-template-rows: minmax(8em, 1fr) auto;"
-    css! = css! + "    padding: var(--bbj-space);"
+    css! = css! + "    padding: var(--dwc-space);"
     css! = css! + "    height: 100%;"
     css! = css! + "}"
 
     rem Define the Options window
-    css! = css! + ".BBjWindow.winOptions {"
+    css! = css! + "fieldset.winOptions {"
     css! = css! + "    margin-top: 1.5em;"
     css! = css! + "    display: flex;"
     css! = css! + "    flex-direction: row;"
     css! = css! + "    flex-wrap: wrap;"
     css! = css! + "    align-items: stretch;"
-    css! = css! + "    gap: var(--bbj-space);"
+    css! = css! + "    gap: var(--dwc-space);"
     css! = css! + "    overflow: auto;"
     css! = css! + "}"
 
+    rem Define the Configuration window
+    css! = css! + "fieldset.winConfig {"
+    css! = css! + "    width: 10em;"
+    css! = css! + "    justify-content: space-between;"
+    css! = css! + "}"
+
     rem Custom CSS for the BBjChildWindows
-    css! = css! + ".BBjChildWindow:not(.winDemo):not(.winOptions) {"
+    css! = css! + "fieldset:not(.winDemo):not(.winOptions) {"
     css! = css! + "    display: flex;"
     css! = css! + "    flex-direction: column;"
     css! = css! + "    flex-grow: 1;"
     css! = css! + "    align-items: stretch;"
-    css! = css! + "    padding: var(--bbj-space);"
-    css! = css! + "    gap: var(--bbj-space, 0.5em);"
-    css! = css! + "    border: var(--bbj-border-width) var(--bbj-border-style) var(--bbj-border-color-primary);"
-    css! = css! + "    border-radius: var(--bbj-border-radius);"
+    css! = css! + "    padding: var(--dwc-space);"
+    css! = css! + "    gap: var(--dwc-space, 0.5em);"
+    css! = css! + "    border: var(--dwc-border-width) var(--dwc-border-style) var(--dwc-border-color-primary);"
+    css! = css! + "    border-radius: var(--dwc-border-radius);"
     css! = css! + "}"
 
     rem Custom CSS for the BBjChildWindows displaying as GroupBoxes
-    css! = css! + ".BBjChildWindow legend {"
-    css! = css! + "    font-weight: var(--bbj-font-weight-semibold);"
-    css! = css! + "    color: var(--bbj-color-primary-text);"
-    css! = css! + "    color: var(--bbj-color-primary-text);"
+    css! = css! + "fieldset legend {"
+    css! = css! + "    font-weight: var(--dwc-font-weight-semibold);"
+    css! = css! + "    color: var(--dwc-color-primary-text);"
+    css! = css! + "    color: var(--dwc-color-primary-text);"
     css! = css! +"}"
 
     rem Define the boxes in the Preview area
     css! = css! + ".box {"
-    css! = css! + "    font-size: var(--bbj-font-size-m);"
-    css! = css! + "    font-family: var(--bbj-font-family-mono);"
-    css! = css! + "    font-weight: var(--bbj-font-weight-bold);"
+    css! = css! + "    font-size: var(--dwc-font-size-m);"
+    css! = css! + "    font-family: var(--dwc-font-family-mono);"
+    css! = css! + "    font-weight: var(--dwc-font-weight-bold);"
     css! = css! + "    padding: 10px 20px;"
     css! = css! + "    margin: 1px;"
-    css! = css! + "    border-radius: var(--bbj-border-radius);"
+    css! = css! + "    border-radius: var(--dwc-border-radius);"
     css! = css! + "    /* The following centers the text inside the box */"
     css! = css! + "    display: flex;"
     css! = css! + "    justify-content: center;"
@@ -458,48 +470,49 @@ injectCss:
     css! = css! + "}"
 
     rem Define custom CSS for the BBjListBoxes in the options window
-    css! = css! + "bbj-list {"
+    css! = css! + "dwc-listbox {"
     css! = css! + "    height: 100%;"
     css! = css! + "}"
-    css! = css! + "bbj-list::part(control-wrapper) {"
+    css! = css! + "dwc-listbox::part(control-wrapper) {"
     css! = css! + "    border: none;"
+    css! = css! + "    --dwc-listbox-background: transparent;"
     css! = css! + "}"
 
     rem Give BBjButtons a minimum width
-    css! = css! + "bbj-button {"
+    css! = css! + "dwc-button {"
     css! = css! + "    min-width: 10ch;"
     css! = css! + "}"
 
-    rem Change the CSS custom properties specifically for the [Show CSS] button
+    rem Change the CSS custom properties specifically for the [Show CSS] button by modifying the CSS custom properties
     css! = css! + ".show-css::part(control) {"
-    css! = css! + "    --bbj-button-background: hsl(44, 100%, 55%);"
-    css! = css! + "    --bbj-button-hover-background: hsl(44, 100%, 60%);"
-    css! = css! + "    --bbj-button-selected-background: hsl(44, 100%, 50%);"
+    css! = css! + "    --dwc-button-background: hsl(44, 100%, 55%);"
+    css! = css! + "    --dwc-button-hover-background: hsl(44, 100%, 60%);"
+    css! = css! + "    --dwc-button-selected-background: hsl(44, 100%, 50%);"
     css! = css! + "}"
 
     rem Custom CSS for the code samples in the information message that you see after pressing the [Show CSS] button
     css! = css! + "pre {"
-    css! = css! + "    padding: var(--bbj-space);"
+    css! = css! + "    padding: var(--dwc-space);"
     css! = css! + "    margin: 0.25em;"
-    css! = css! + "    background: var(--bbj-color-gray-95);"
+    css! = css! + "    background: var(--dwc-color-gray-95);"
     css! = css! + "}"
 
     rem If the PRE sections aren't styled wtih Prism, then we'll define our own borders for them
     css! = css! + "pre:not([class*='language']) {"
-    css! = css! + "    border: 1px solid var(--bbj-color-gray);"
-    css! = css! + "    border-radius: var(--bbj-border-radius-m);"
+    css! = css! + "    border: 1px solid var(--dwc-color-gray);"
+    css! = css! + "    border-radius: var(--dwc-border-radius-m);"
     css! = css! + "}"
 
     css! = css! + "code {"
-    css! = css! + "    font-family: Consolas, var(--bbj-font-family-mono);"
-    css! = css! + "    font-weight: var(--bbj-font-weight-bold);"
+    css! = css! + "    font-family: Consolas, var(--dwc-font-family-mono);"
+    css! = css! + "    font-weight: var(--dwc-font-weight-bold);"
     css! = css! + "    line-height: 140%;"
     css! = css! + "    color: hsl(0, 0%, 25%);"
     css! = css! + "    -webkit-font-smoothing: subpixel-antialiased;"
     css! = css! + "}"
     css! = css! + "h1 {"
     css! = css! + "    margin: 0.5em 0;"
-    css! = css! + "    font-size: var(--bbj-font-size-m);"
+    css! = css! + "    font-size: var(--dwc-font-size-m);"
     css! = css! + "}"
 
     web!.injectStyle(css!, 0)
