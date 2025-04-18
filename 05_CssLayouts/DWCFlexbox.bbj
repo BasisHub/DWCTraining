@@ -155,16 +155,16 @@ release
 
 rem Callback for changing the flexbox wrap
 onWrapChange:
-    e! = cast(BBjListClickEvent, SysGui!.getLastEvent())
-    wrap! = str(vectWraps!.getItem(e!.getSelectedIndex()))
+    listClickEvent! = SysGui!.getLastEvent()
+    wrap! = str(vectWraps!.getItem(listClickEvent!.getSelectedIndex()))
     winDemo!.setStyle("flex-wrap", wrap!)
 return
 
 
 rem Callback for wchanging the flexbox direction
 onDirectionChange:
-    e! = cast(BBjListClickEvent, SysGui!.getLastEvent())
-    direction! = str(vectDirections!.getItem(e!.getSelectedIndex()))
+    listClickEvent! = SysGui!.getLastEvent()
+    direction! = str(vectDirections!.getItem(listClickEvent!.getSelectedIndex()))
     winDemo!.setStyle("flex-direction", direction!)
     if (direction!.startsWith("row")) then
         winJustification!.setText("Justification (H)")
@@ -178,24 +178,24 @@ return
 
 rem Callback for changing the flexbox justification
 onJustificationChange:
-    e! = cast(BBjListClickEvent, SysGui!.getLastEvent())
-    justification! = str(vectJustifications!.getItem(e!.getSelectedIndex()))
+    listClickEvent! = SysGui!.getLastEvent()
+    justification! = str(vectJustifications!.getItem(listClickEvent!.getSelectedIndex()))
     winDemo!.setStyle("justify-content", justification!)
 return
 
 
 rem Callback for changing the flexbox alignment
 onAlignmentChange:
-    e! = cast(BBjListClickEvent, SysGui!.getLastEvent())
-    alignment! = str(vectAlignments!.getItem(e!.getSelectedIndex()))
+    listClickEvent! = SysGui!.getLastEvent()
+    alignment! = str(vectAlignments!.getItem(listClickEvent!.getSelectedIndex()))
     winDemo!.setStyle("align-items", alignment!)
 return
 
 
 rem Callback for changing the flex-grow value
 onGrowChange:
-    e! = cast(BBjListClickEvent, SysGui!.getLastEvent())
-    grow! = str(vectGrows!.getItem(e!.getSelectedIndex()))
+    listClickEvent! = SysGui!.getLastEvent()
+    grow! = str(vectGrows!.getItem(listClickEvent!.getSelectedIndex()))
     gosub setBoxGrowFactor
 return
 
@@ -244,8 +244,8 @@ return
 
 rem Callback for when the user changes the number of boxes to show in the visualization area
 onNumBoxesSpin:
-    e! = cast(BBjSpinEvent, SysGui!.getLastEvent())
-    numVisibleBoxes = num(e!.getText())
+    spinEvent! = SysGui!.getLastEvent()
+    numVisibleBoxes = num(spinEvent!.getText())
 
     rem Change the box colors so that they are always spread across the hue spectrum
     for i = 0 to numBoxes-1
@@ -549,5 +549,10 @@ declare auto BBjString cssCode!
 declare auto BBjString bbjCode!
 declare auto BBjString codeString!
 
+declare auto BBjListClickEvent listClickEvent!
+declare auto BBjSpinEvent spinEvent!
+
 rem USE Statements
 use ::DemoUtils.bbj::DemoUtils
+use java.lang.String
+use java.util.Arrays
