@@ -18,7 +18,7 @@ rem  */
 rem If the app is running in BUI, switch it automatically to run in the DWC client instead
 if info(3,6)="5" then
     bui! = BBjAPI().getBuiManager()
-    url! = bui!.getUrl().replaceAll("apps: webapp")
+    url! = bui!.getUrl().replaceAll("apps", "webapp")
     action! = bui!.urlAction(url!)
     bui!.setEndAction(action!)
     release
@@ -42,7 +42,7 @@ rem Create the main window
 sysgui = unt
 open (sysgui)"X0"
 sysgui! = bbjapi().getSysGui()
-window! = sysgui!.addWindow("DWC Flexbox Demo", $00180093$)
+window! = sysgui!.addWindow("DWC Flexbox Demo", $00181093$)
 
 rem Optionally set the app's theme to follow the client's operating system's light/dark mode
 REM web!.setTheme("system")
@@ -65,6 +65,7 @@ winDemo!.setStyle("background-image", "radial-gradient(circle, #000000 1px, rgba
 winDemo!.setStyle("background-image", "linear-gradient(to right, rgba(0, 0, 0, 0.5) 1px, transparent 1px)")
 winDemo!.setStyle("background-image", "linear-gradient(90deg, hsl(var(--dwc-color-danger-h), var(--dwc-color-danger-s), 75%) 1px, transparent 1px)")
 winDemo!.setStyle("background-position", "-0.5px 0px")
+winDemo!.setStyle("margin-bottom", "var(--dwc-space-l)")
 
 
 rem Create the boxes and add them to a vector for later retrieval
@@ -82,6 +83,14 @@ for i = 0 to numBoxes-1
     vectBoxControls!.addItem(box!)
     if (i >= numVisibleBoxes) then box!.setVisible(0)
 next
+
+
+rem Create the window that contains the CSS Preview on the main window
+winCSSPreview! = window!.addChildWindow("CSS Preview", $00109000$, sysgui!.getAvailableContext())
+winCSSPreview!.addStyle("winCSSPreview")
+gosub getCssCode
+htmlCssPreview! = winCSSPreview!.addHtmlView(cssCode!)
+htmlCssPreview!.addStyle("htmlCssPreview")
 
 
 rem Create the window that contains the controls
@@ -158,6 +167,8 @@ onWrapChange:
     listClickEvent! = SysGui!.getLastEvent()
     wrap! = str(vectWraps!.getItem(listClickEvent!.getSelectedIndex()))
     winDemo!.setStyle("flex-wrap", wrap!)
+    gosub getCssCode
+    gosub setCssCode
 return
 
 
@@ -173,6 +184,8 @@ onDirectionChange:
         winJustification!.setText("Justification (V)")
         winAlignments!.setText("Alignment (H)")
     endif
+    gosub getCssCode
+    gosub setCssCode
 return
 
 
@@ -181,6 +194,8 @@ onJustificationChange:
     listClickEvent! = SysGui!.getLastEvent()
     justification! = str(vectJustifications!.getItem(listClickEvent!.getSelectedIndex()))
     winDemo!.setStyle("justify-content", justification!)
+    gosub getCssCode
+    gosub setCssCode
 return
 
 
@@ -189,6 +204,8 @@ onAlignmentChange:
     listClickEvent! = SysGui!.getLastEvent()
     alignment! = str(vectAlignments!.getItem(listClickEvent!.getSelectedIndex()))
     winDemo!.setStyle("align-items", alignment!)
+    gosub getCssCode
+    gosub setCssCode
 return
 
 
@@ -197,6 +214,8 @@ onGrowChange:
     listClickEvent! = SysGui!.getLastEvent()
     grow! = str(vectGrows!.getItem(listClickEvent!.getSelectedIndex()))
     gosub setBoxGrowFactor
+    gosub getCssCode
+    gosub setCssCode
 return
 
 
@@ -393,6 +412,53 @@ onShowCss:
 return
 
 
+rem Derives the CSS that's currently employed in the preview area and wraps it in HTML so that it can be shown in a message box or in the CSS Preview window if there's available space
+getCssCode:
+    rem Get the window's styles that are currently in effect
+    cssCode! = winDemo!.getAttribute("style")
+
+    rem Remove styles that don't deal with layout, i.e. border, background, etc.
+    cssCode! = cssCode!.replaceAll("(\s*)back(.*?);(\s*)", "")
+    cssCode! = cssCode!.replaceAll("(\s*)border(.*?);(\s*)", "")
+    cssCode! = cssCode!.replaceAll("(\s*)min-height(.*?);(\s*)", "")
+
+    rem Create the BBj code version
+    bbjCodeGetStyle! = "cssCode! = winDemo!.getAttribute(""style"")"
+    bbjCode! = "rem Set the window's layout using CSS Flexbox" + $0a$
+    bbjCode! = bbjCode! + "window!.setPanelStyle(""height"", ""100%"")" + $0a$
+    codeString! = cssCode!.replaceAll(";(\s*)", $0a$)
+    while codeString!.indexOf($0a$) > -1
+        p1 = codeString!.indexOf(":")
+        p2 = codeString!.indexOf($0a$)
+        bbjCode! = bbjCode! + "window!.setPanelStyle(""" + codeString!.substring(0, p1) + """, """ + codeString!.substring(p1+1, p2).trim() + """)" + $0a$
+        codeString! = codeString!.substring(p2+1)
+    wend
+
+    rem Add linebreaks into the CSS code for Prism
+    bbjCode! = bbjCode!.replaceAll($0a$, "&#10;")
+    cssCode! = cssCode!.replaceAll(";\s*", ";&#10;")
+
+    rem Inject the Prism library to provide syntax highlighting for code samples.
+    rem Note that we're including an error branch so that it will fail gracefully if the library is not available
+    web!.injectStyle(DemoUtils.getFileContents(dsk("")+dir("")+"prism.min.css",err=*NEXT), 0, "name=prism_css_bottom")
+    web!.injectScript(DemoUtils.getFileContents(dsk("")+dir("")+"prism.min.js",err=*NEXT), 0, "name=prism_js_bottom")
+
+    rem Define the contents of the message box
+    cssPreview! = "<html><div class='info'><p>Listed below are the current CSS layout definitions for the '<b>Flexbox Layout Preview</b>' <code><a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjchildwindow/bbjchildwindow.htm' target='_blank'>BBjChildWindow</a></code> at the top of the app that contains the multi-colored boxes. "
+    cssPreview! = cssPreview! + "<p><h1>Method 1: CSS Styles</h1><pre><code class='language-css'>" + cssCode! + "</code></pre></p>"
+    cssPreview! = cssPreview! + "<p><h1>Method 1: BBj Code</h1><pre><code class='language-bbj'>" + bbjCode! + "</code></pre></p></div>"
+
+    rem Define just the formatted CSS code
+    cssCode! = "<pre><code class='language-css'>" + cssCode! + "</code></pre>"
+return
+
+
+rem This shows the CSS currently in effect in the CSS Preview window, if there's enough space available to show the preview window
+setCssCode:
+    htmlCssPreview!.setText(cssCode!)
+return
+
+
 rem Inject custom CSS instead of registering an external CSS file with the app in EM.  This is done because it's easier
 rem to modify the CSS during development and see the changes on the next app invocation, and makes this a standalone sample.
 injectCss:
@@ -404,9 +470,9 @@ injectCss:
     web!.injectLinkUrl("<link href='https://fonts.googleapis.com/css2?family=Inconsolata&family=Ubuntu+Mono:ital@0;1&display=swap' rel='stylesheet'>", 1)
 
     rem Give the window a minimum width and height so that the user can't make it too small
-    css! =        "dwc-window-content {"
+    css! =        "dwc-window-center, dwc-window-content {"
     css! = css! + "    min-height: 27em;"
-    css! = css! + "    min-width: 40em;"
+    css! = css! + "    min-width: 30em;"
     css! = css! + "}"
 
     rem Define a CSS Grid layout for the main window's panel (the element that contains all the BBj controls)
@@ -414,20 +480,73 @@ injectCss:
     css! = css! + "    box-sizing: border-box;"
     css! = css! + "    display: grid;"
     css! = css! + "    grid-template-rows: minmax(8em, 1fr) auto;"
+    css! = css! + "    gap: var(--dwc-space-l);"
     css! = css! + "    padding: var(--dwc-space);"
     css! = css! + "    height: 100%;"
     css! = css! + "}"
 
     rem Define the Options window
     css! = css! + "fieldset.winOptions {"
-    css! = css! + "    margin-top: 1.5em;"
     css! = css! + "    display: flex;"
     css! = css! + "    flex-direction: row;"
     css! = css! + "    flex-wrap: wrap;"
     css! = css! + "    align-items: stretch;"
-    css! = css! + "    gap: var(--dwc-space);"
+    css! = css! + "    gap: var(--dwc-space-l);"
     css! = css! + "    overflow: auto;"
     css! = css! + "}"
+
+    rem Define the CSS Preview window
+    css! = css! + "fieldset.winCSSPreview {"
+    css! = css! + "    padding: var(--dwc-space-xs) !important;"
+    css! = css! + "    overflow: auto;"
+    css! = css! + "}"
+
+    rem Conditionally show the CSS Preview window, only if there's enough vertical space available
+    css! = css! + "fieldset.winCSSPreview {"
+    css! = css! + "    display: none !important;"
+    css! = css! + "}"
+    css! = css! + "@media (min-height: 30em) {"
+    css! = css! + "    fieldset.winCSSPreview {"
+    css! = css! + "        display: block !important;"
+    css! = css! + "        height: 100%;"
+    css! = css! + "    }"
+    css! = css! + "}"
+
+    rem Define the CSS Preview HTMLView control
+    css! = css! + "dwc-htmlview.htmlCssPreview {"
+    css! = css! + "    width: 100%;"
+    css! = css! + "    height: 100%;"
+    css! = css! + "    min-height: 1em;"
+    css! = css! + "    overflow: auto;"
+    css! = css! + "    font-family: var(--dwc-font-family-mono);"
+    css! = css! + "    font-size: var(--dwc-font-size-m);"
+    css! = css! + "    line-height: 140%;"
+    css! = css! + "    color: var(--dwc-color-primary-text);"
+    css! = css! + "    border: none;"
+    css! = css! + "}"
+
+    rem Modify the Prism styles for the code box to remove extra spacing
+    css! = css! + "dwc-htmlview.htmlCssPreview pre[class*=language-] {"
+    css! = css! + "    margin: 0;"
+    css! = css! + "    padding: 0;"
+    css! = css! + "}"
+
+    rem Modify the Prism styles for the code to remove the border and box-shadow
+    css! = css! + "dwc-htmlview.htmlCssPreview pre[class*=language-]>code {"
+    css! = css! + "    border: none;"
+    css! = css! + "    box-shadow: none;"
+    css! = css! + "    padding: 0 var(--dwc-space-s);"
+    css! = css! + "    margin: 0;"
+    css! = css! + "}"
+
+    rem Make the Prism [COPY] code button larger
+    css! = css! + "button.copy-to-clipboard-button {"
+    css! = css! + "    padding: 0 var(--dwc-space-s) !important;"
+    css! = css! + "    font-family: var(--dwc-font-family, monospace) !important;;"
+    css! = css! + "    font-size: var(--dwc-font-size-l, 1em) !important;"
+    css! = css! + "}"
+
+
 
     rem Define the Configuration window
     css! = css! + "fieldset.winConfig {"
@@ -524,6 +643,7 @@ declare auto BBjWebManager web!
 declare auto BBjSysGui sysgui!
 declare auto BBjTopLevelWindow window!
 declare auto BBjChildWindow winOptions!
+declare auto BBjChildWindow winCSSPreview!
 declare auto BBjChildWindow winDemo!
 declare auto BBjChildWindow winConfig!
 declare auto BBjChildWindow winDirection!
