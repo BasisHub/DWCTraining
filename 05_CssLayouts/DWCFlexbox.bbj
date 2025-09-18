@@ -373,8 +373,8 @@ onShowCss:
 
     rem Inject the Prism library to provide syntax highlighting for code samples.
     rem We're including an error branch so that it will fail gracefully
-    web!.injectStyle(DemoUtils.getFileContents(dsk("")+dir("")+"prism.min.css",err=*NEXT), 0, "name=prism_css_bottom")
-    web!.injectScript(DemoUtils.getFileContents(dsk("")+dir("")+"prism.min.js",err=*NEXT), 0, "name=prism_js_bottom")
+    web!.injectStyle(DemoUtils.getFileBytes(dsk("")+dir("")+"prism.min.css",err=*NEXT), 0, "name=prism_css_bottom")
+    web!.injectScript(DemoUtils.getFileBytes(dsk("")+dir("")+"prism.min.js",err=*NEXT), 0, "name=prism_js_bottom")
 
     rem Define the contents of the message box
     msg! = "<html><div class='info'><p>Listed below are the current CSS layout definitions for the '<b>Flexbox Layout Preview</b>' <code><a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjchildwindow/bbjchildwindow.htm' target='_blank'>BBjChildWindow</a></code> at the top of the app that contains the multi-colored boxes. "
@@ -421,6 +421,7 @@ getCssCode:
     cssCode! = cssCode!.replaceAll("(\s*)back(.*?);(\s*)", "")
     cssCode! = cssCode!.replaceAll("(\s*)border(.*?);(\s*)", "")
     cssCode! = cssCode!.replaceAll("(\s*)min-height(.*?);(\s*)", "")
+    cssCode! = cssCode!.replaceAll("(\s*)font(.*?);(\s*)", "")
 
     rem Create the BBj code version
     bbjCodeGetStyle! = "cssCode! = winDemo!.getAttribute(""style"")"
@@ -440,8 +441,8 @@ getCssCode:
 
     rem Inject the Prism library to provide syntax highlighting for code samples.
     rem Note that we're including an error branch so that it will fail gracefully if the library is not available
-    web!.injectStyle(DemoUtils.getFileContents(dsk("")+dir("")+"prism.min.css",err=*NEXT), 0, "name=prism_css_bottom")
-    web!.injectScript(DemoUtils.getFileContents(dsk("")+dir("")+"prism.min.js",err=*NEXT), 0, "name=prism_js_bottom")
+    web!.injectStyle(DemoUtils.getFileBytes(dsk("")+dir("")+"prism.min.css",err=*NEXT), 0, "name=prism_css_bottom")
+    web!.injectScript(DemoUtils.getFileBytes(dsk("")+dir("")+"prism.min.js",err=*NEXT), 0, "name=prism_js_bottom")
 
     rem Define the contents of the message box
     cssPreview! = "<html><div class='info'><p>Listed below are the current CSS layout definitions for the '<b>Flexbox Layout Preview</b>' <code><a href='https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjchildwindow/bbjchildwindow.htm' target='_blank'>BBjChildWindow</a></code> at the top of the app that contains the multi-colored boxes. "
